@@ -1,0 +1,229 @@
+:root {
+  --fade-dur: 900ms;
+}
+
+body {
+  background: url("swirl.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: #fff;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+.hero h1 { margin: 0 0 .4rem; }
+.hero .lead { margin: 0 0 .6rem; }
+
+.floating-inline-nav {
+  position: absolute;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  z-index: 5;
+  background-color: rgba(33,37,41,0.80);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  width: max-content;
+  padding: .60rem .10rem;
+  border-radius: 9999px;
+}
+
+.chip {
+  display: inline-block;
+  padding: .34rem .8rem;
+  border-radius: 9999px;
+  color: #fff;
+}
+.chip:hover,
+.chip:focus,
+.chip.active {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+  text-decoration: none;
+}
+
+h1, h2 { font-weight: 800; color: #fff; }
+
+@media (max-width: 576px) {
+  .hero { min-height: 88vh; padding-top: 1.75rem; padding-bottom: 52px; }
+  .floating-inline-nav { bottom: 12px; }
+  .chip { padding: .3rem .7rem; }
+}
+
+#splash { z-index: 2000; }
+
+#splash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: url("swirls.jpg") no-repeat center center;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: #fff;
+}
+
+.splash-text {
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+  animation: fadeInOut 2.5s ease;
+}
+
+@keyframes fadeInOut {
+  0%   { opacity: 0; transform: scale(0.9); }
+  30%  { opacity: 1; transform: scale(1); }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+
+#splash.hide { opacity: 0; pointer-events: none; }
+
+.splash-box {
+  text-align: center;
+}
+
+.typewrap {
+  display: inline-flex;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-weight: 800;
+  font-size: clamp(32px, 6vw, 72px);
+  letter-spacing: 0;
+  color: #fff;
+}
+
+#typed { white-space: pre; }
+
+.letter {
+  display: inline-block;
+  opacity: 0;
+  transform: none;
+}
+.letter.show {
+  opacity: 1;
+  transform: none;
+  transition: opacity .28s ease;
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 2px;
+}
+
+@keyframes fadeOutFlat {
+  0%   { opacity: 1; }
+  18%  { opacity: .25; }
+  28%  { opacity: 1; }
+  44%  { opacity: .15; }
+  60%  { opacity: 1; }
+  78%  { opacity: .2; }
+  100% { opacity: 0; }
+}
+.flicker-up,
+.flicker-down {
+  animation: fadeOutFlat var(--fade-dur, 900ms) ease-out forwards;
+}
+
+@keyframes caretFlickerOut {
+  0%   { opacity:1; }
+  18%  { opacity:.25; }
+  28%  { opacity:1; }
+  44%  { opacity:.15; }
+  60%  { opacity:1; }
+  78%  { opacity:.2; }
+  100% { opacity:0; }
+}
+.caret.flicker-out { animation: caretFlickerOut var(--fade-dur, 900ms) ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .letter, .letter.show {
+    transition: none !important;
+    transform: none !important;
+  }
+  .flicker-up, .flicker-down,
+  .caret.flicker-out,
+  .caret.blink {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border-radius: 1rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.modal-header {
+  border-bottom: none !important;
+  background: transparent !important;
+}
+.modal-title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #fff !important;
+}
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+.modal-content .form-label {
+  color: #fff !important;
+}
+.modal-content .form-control {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #fff !important;
+}
+.modal-content .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.modal-content .form-control:focus {
+  border-color: #00A388 !important;
+  box-shadow: 0 0 0 .2rem rgba(255, 79, 160, .4) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.modal-content .btn {
+  border-radius: .5rem !important;
+  font-weight: 600 !important;
+}
+.modal-content .btn-primary {
+  background-color: #00A388 !important;
+  border: none !important;
+}
+.modal-content .btn-primary:hover {
+  background-color: #00A388 !important;
+}
+.modal-content .btn-success {
+  background-color: #00A388 !important;
+  border: none !important;
+}
+.modal-content .btn-success:hover {
+  background-color: #00A388 !important;
+}
+
+.modal-dialog {
+  max-width: 400px !important;
+}

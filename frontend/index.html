@@ -1,16 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Planner</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Planner</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
-<body class="bg-light">
-    <div class="container py-5">
-        <h1 class="text-center mb-4">Content Planner and Organiser</h1>
-        <p class="text-center">Welcome to your social media planning tool!</p>
+
+<body>
+    <!-- PAGE CONTENT (shifted to the right of the fixed sidebar) -->
+    <div class="content flex-grow-1">
+<!-- Splash Screen -->
+<div id="splash" role="dialog" aria-label="Loading">
+  <div class="splash-box">
+    <div class="typewrap">
+      <span id="typed"></span>
+      <span class="caret"></span>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <h1 class="mb-3">V I S I O N A</h1>
+  <p class="lead mb-4">Plan, schedule, and organise your social media content.</p>
+  <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#signupModal">
+    Create Account
+  </button>
+
+  <nav class="navbar navbar-dark bg-dark bg-opacity-75 rounded-pill px-3 floating-inline-nav">
+  <ul class="nav mx-auto">
+    <li class="nav-item">
+        <a href="#home" class="chip text-decoration-none">Home</a>
+      </li>
+    <li class="nav-item">
+      <a href="#home" class="chip text-decoration-none">Explore</a>
+    </li>
+    <li class="nav-item ms-2">
+      <a href="#" class="chip text-decoration-none" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+    </li>
+  </ul>
+</nav>
+</div>
+
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="loginEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email">
+            </div>
+            <div class="mb-3">
+              <label for="loginPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Account</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="signupName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="signupName" placeholder="Enter your name">
+            </div>
+            <div class="mb-3">
+              <label for="signupEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email">
+            </div>
+            <div class="mb-3">
+              <label for="signupPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="signupPassword" placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn btn-success w-100">Sign Up</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Typewriter Script -->
+<script>
+  const TEXT_TO_TYPE = "V I S I O N A";
+  const PER_CHAR_DELAY = 120;             // typing speed
+  const AFTER_DONE_PAUSE = 300;          // pause before letters start flickering away
+  const FADE_STAGGER_MAX = 900;          // max random delay per letter (ms)
+  const FADE_MIN_DUR = 700;              // random duration range (ms)
+  const FADE_MAX_DUR = 1000;
+
+  const typed = document.getElementById("typed");
+  const caret = document.querySelector(".caret");
+
+  function typeIt(t, i = 0) {
+    if (i < t.length) {
+      const span = document.createElement("span");
+      span.className = "letter";
+      span.textContent = t[i];
+      typed.appendChild(span);
+      requestAnimationFrame(() => span.classList.add("show"));
+      setTimeout(() => typeIt(t, i + 1), PER_CHAR_DELAY);
+    } else {
+      // caret blinks only after typing is done
+      caret.classList.add("blink");
+      setTimeout(() => flickerOutAll(), AFTER_DONE_PAUSE);
+    }
+  }
+
+  // Helpers
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function flickerOutAll() {
+    // stop caret blinking; flicker it out with same timing as letters
+    caret.classList.remove("blink");
+
+    const caretDelay = randInt(0, FADE_STAGGER_MAX);
+    const caretDur = randInt(FADE_MIN_DUR, FADE_MAX_DUR);
+    caret.style.setProperty('--fade-dur', `${caretDur}ms`);
+    caret.style.animationDelay = `${caretDelay}ms`;
+    caret.classList.add("flicker-out"); // uses caretFlickerOut
+
+    const letters = Array.from(typed.children);
+    let maxEnd = caretDelay + caretDur;
+
+    letters.forEach((span) => {
+      const delay = randInt(0, FADE_STAGGER_MAX);
+      const dur = randInt(FADE_MIN_DUR, FADE_MAX_DUR);
+      const dirClass = Math.random() < 0.5 ? "flicker-up" : "flicker-down";
+      span.style.setProperty('--fade-dur', `${dur}ms`);
+      span.style.animationDelay = `${delay}ms`;
+      span.classList.add(dirClass);
+      const endTime = delay + dur;
+      if (endTime > maxEnd) maxEnd = endTime;
+    });
+
+    // hide splash after animations finish
+    setTimeout(() => {
+      document.getElementById("splash").classList.add("hide");
+      document.getElementById("main-content").classList.remove("d-none");
+      setTimeout(() => document.getElementById("splash")?.remove(), 600);
+    }, maxEnd + 250);
+  }
+
+  window.addEventListener("load", () => typeIt(TEXT_TO_TYPE));
+</script>
     </div>
 </body>
 </html>
