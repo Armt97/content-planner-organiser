@@ -220,3 +220,4 @@ __pycache__/
 *.pyo
 instance/
 .env
+*.db
