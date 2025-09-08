@@ -22,16 +22,19 @@
 - Added a static **Content Idea Board** (`frontend/idea-board.html`) with a Kanban-style layout:
   - Columns for *Ideas*, *In Progress*, *Scheduled*, and *Posted*.
   - Sample content cards for demonstration.
-- Updated GitHub repository with backend, frontend pages, and static assets.
+- Added **database integration with SQLite**:
+  - Created `User` and `Content` models using SQLAlchemy.
+  - Configured Flask to use `visiona.db`.
+  - Added `/init-db` route to initialise the database and create tables.
+- Updated GitHub repository with backend, frontend pages, static assets, and database models.
 
 ## Remaining Tasks
-- Implement **Week 5–6 deliverables**:
-  - Set up database models for `User` and `Content` (SQLite initially).
   - Add authentication (signup/login/logout).
   - Connect calendar and idea board to backend/database for persistence.
-- Prepare deployment environment (AWS EC2/S3).
+  - Prepare deployment environment (AWS EC2/S3).
 
 ## Changes in Scope
 - No major changes in scope so far.  
 - Minor technical adjustment: Flask continues to run on port 5001 instead of 5000 due to a port conflict on macOS.
+
 
