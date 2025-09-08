@@ -227,3 +227,22 @@ h1, h2 { font-weight: 800; color: #fff; }
 .modal-dialog {
   max-width: 400px !important;
 }
+
+/* ===== Calendar Styles ===== */
+#calendar {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Idea Board Styles ===== */
+.card-header {
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.card-body .card {
+  border-radius: .5rem;
+}
