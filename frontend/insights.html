@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Insights</title>
+  <meta charset="UTF-8">
+  <title>Insights</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
- <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
   <div class="container-fluid justify-content-center">
     <ul class="navbar-nav">
       <li class="nav-item mx-3">
@@ -26,10 +29,9 @@
     </ul>
   </div>
 
-  <!-- Logout pinned to navbar -->
-  <form id="logoutForm" action="/logout" method="post"
-        class="position-absolute top-50 end-0 translate-middle-y me-4">
-    <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
+  <!-- Fixed logout on the right -->
+  <form id="logoutForm" action="/logout" method="post" class="me-3">
+    <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
       Logout
     </button>
   </form>
@@ -41,13 +43,145 @@
     e.preventDefault();
     const res = await fetch("/logout", { method: "POST" });
     const data = await res.json().catch(()=>({}));
-    if (data && data.ok) {
-      window.location.href = data.redirect || "/";
-    } else {
-      alert("Logout failed. Try again.");
-    }
+    if (data && data.ok) window.location.href = data.redirect || "/";
+    else alert("Logout failed. Try again.");
   });
 </script>
 
+<div class="container py-4">
+  <h2 class="text-white fw-bold mb-4">Insights Dashboard</h2>
+
+  <!-- KPI Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card bg-dark bg-opacity-75 text-white h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">This Week’s Posts</h6>
+            <span id="kpiDelta" class="badge"></span>
+          </div>
+          <div class="display-6 fw-bold mt-2" id="kpiThisWeek">0</div>
+          <div class="small text-white-50" id="kpiLastWeek">Last week: 0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-dark bg-opacity-75 text-white h-100">
+        <div class="card-body">
+          <h6 class="mb-0">Avg. Time Idea → Post</h6>
+          <div class="display-6 fw-bold mt-2" id="kpiAvgDays">—</div>
+          <div class="small text-white-50">Days (Posted only)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-dark bg-opacity-75 text-white h-100">
+        <div class="card-body">
+          <h6 class="mb-2">Suggestions</h6>
+          <ul id="suggestionsList" class="mb-0 ps-3"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="card bg-white h-100">
+        <div class="card-body">
+          <h6 class="mb-3">Weekly Posts (last 8 weeks)</h6>
+          <canvas id="weeklyChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-white h-100">
+        <div class="card-body">
+          <h6 class="mb-3">Platform Usage (last 30 days)</h6>
+          <canvas id="platformChart" height="240"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(async function(){
+  const res = await fetch('/api/insights');
+  const { ok, data } = await res.json().catch(()=>({ok:false}));
+  if(!ok) { alert('Failed to load insights'); return; }
+
+  // KPIs
+  const tw = data.week_summary.this_week;
+  const lw = data.week_summary.last_week;
+  const delta = data.week_summary.delta;
+  document.getElementById('kpiThisWeek').textContent = tw;
+  document.getElementById('kpiLastWeek').textContent = `Last week: ${lw}`;
+
+  const deltaBadge = document.getElementById('kpiDelta');
+  if (delta > 0) { deltaBadge.className = 'badge bg-success'; deltaBadge.textContent = `+${delta}`; }
+  else if (delta < 0) { deltaBadge.className = 'badge bg-danger'; deltaBadge.textContent = `${delta}`; }
+  else { deltaBadge.className = 'badge bg-secondary'; deltaBadge.textContent = '0'; }
+
+  const avg = data.avg_idea_to_post_days;
+  document.getElementById('kpiAvgDays').textContent = (avg == null) ? '—' : `${avg}`;
+
+  // Suggestions
+  const ul = document.getElementById('suggestionsList');
+  ul.innerHTML = '';
+  (data.suggestions && data.suggestions.length ? data.suggestions : ['Looking good. Keep consistent!'])
+    .forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      ul.appendChild(li);
+    });
+
+  // Weekly Chart (bar)
+  const weekLabels = data.weekly_series.map(x => {
+    const d = new Date(x.week_start);
+    const m = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return m; // week start label
+  });
+  const weekData = data.weekly_series.map(x => x.count);
+
+  new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: weekLabels,
+      datasets: [{
+        label: 'Posts',
+        data: weekData
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { precision:0 } }
+      }
+    }
+  });
+
+  // Platform Chart (doughnut)
+  const pLabels = data.platform_breakdown.map(p => `${p.platform} (${p.percent}%)`);
+  const pData = data.platform_breakdown.map(p => p.count);
+
+  new Chart(document.getElementById('platformChart'), {
+    type: 'doughnut',
+    data: {
+      labels: pLabels,
+      datasets: [{ data: pData }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      cutout: '60%'
+    }
+  });
+})();
+</script>
 </body>
 </html>
