@@ -172,15 +172,19 @@
         const data = await res.json();
 
         if (res.ok && data.ok) {
-          signupMsg.className = "alert alert-success";
-          signupMsg.textContent = data.message || "Account created!";
-          setTimeout(() => {
-            const modalEl = document.getElementById("signupModal");
-            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.hide();
-            window.location.href = data.redirect || "/idea-board";
-          }, 600);
-        } else {
+  // store a one-time flash message for the next page
+  if (data.message) sessionStorage.setItem("flash", data.message);
+
+  loginMsg.className = "alert alert-success";
+  loginMsg.textContent = "Login successful!";
+  setTimeout(() => {
+    const modalEl = document.getElementById("loginModal");
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.hide();
+    window.location.href = data.redirect || "/idea-board";
+  }, 600);
+}
+ else {
           signupMsg.className = "alert alert-danger";
           signupMsg.textContent = (data && data.message) ? data.message : "Sign up failed.";
         }

@@ -13,16 +13,13 @@ class User(db.Model, UserMixin):
     contents = db.relationship("Content", backref="user", lazy=True)
 
     def __repr__(self):
-        return f"<User {self.email}>"
+      return f"<User {self.email}>"
 
-    # --- New helper methods ---
     def set_password(self, password):
-        """Hashes and stores the user's password."""
-        self.password_hash = generate_password_hash(password)
+      self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        """Validates a given password against the stored hash."""
-        return check_password_hash(self.password_hash, password)
+      return check_password_hash(self.password_hash, password)
 
 
 class Content(db.Model):
@@ -32,7 +29,9 @@ class Content(db.Model):
     scheduled_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(50), nullable=False, default="Idea")
 
+    details = db.Column(db.Text, nullable=True, default="")
+
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     def __repr__(self):
-        return f"<Content {self.title} on {self.platform}>"
+      return f"<Content {self.title} on {self.platform}>"

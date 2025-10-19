@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Calendar</title>
+  <title>Calendar</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -11,49 +11,109 @@
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 p-3">
-    <div class="container-fluid">
-      <a href="{{ url_for('home') }}" class="navbar-brand">VISIONA</a>
-      <div class="collapse navbar-collapse" id="nav">
-        <ul class="nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('idea_board') }}">Idea Board</a></li>
-          <li class="nav-item"><a class="nav-link active" href="{{ url_for('calendar') }}">Calendar</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('library') }}">Library</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('insights') }}">Insights</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
+  <div class="container-fluid justify-content-center">
+    <ul class="navbar-nav">
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<form id="logoutForm" action="/logout" method="post" class="logout-btn">
+  <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
+    Logout
+  </button>
+</form>
+  
+
+<script>
+  const lf = document.getElementById("logoutForm");
+  lf?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/logout", { method: "POST" });
+    const data = await res.json().catch(()=>({}));
+    if (data && data.ok) {
+      window.location.href = data.redirect || "/";
+    } else {
+      alert("Logout failed. Try again.");
+    }
+  });
+</script>
 
   <!-- Calendar Section -->
   <div class="container py-5">
-    <h2 class="mb-4 text-center">Content Calendar</h2>
     <div id="calendar"></div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const calendarEl = document.getElementById('calendar');
+  document.addEventListener('DOMContentLoaded', async function () {
+    const statusColors = {
+      "Scheduled": "#0d6efd", // blue
+      "Posted": "#198754"     // green
+    };
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-        },
-        events: [
-          { title: 'Instagram Post – New Reel', start: '2025-09-10T10:00:00' },
-          { title: 'TikTok Video – Behind the Scenes', start: '2025-09-12T15:00:00' },
-          { title: 'YouTube Upload – Vlog #5', start: '2025-09-15T18:00:00' },
-                  { title: 'Instagram Story – Q&A', start: '2025-09-18T09:00:00' }
-        ]
-      });
+    async function fetchCalendarEvents(fetchInfo, success, failure) {
+      try {
+        const res = await fetch("/api/ideas");
+        const data = await res.json();
+        if (!data.ok) return failure("Failed to load ideas.");
 
-      calendar.render();
+        const events = data.items
+          .filter(i => (i.status === "Scheduled" || i.status === "Posted") && !!i.scheduled_time)
+          .map(i => ({
+            id: String(i.id),
+            title: `${i.platform}: ${i.title}`,
+            start: i.scheduled_time,                       // ISO with Z from your API
+            color: statusColors[i.status] || "#6c757d",    // fallback grey if needed
+            extendedProps: { item: i }
+          }));
+
+        success(events);
+      } catch (err) {
+        console.error(err);
+        failure(err);
+      }
+    }
+
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 'auto',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' }, // AM/PM
+      events: fetchCalendarEvents,
+      eventClick(info) {
+        const item = info.event.extendedProps.item;
+        // If you want to edit from the calendar page:
+        alert(
+          `${item.platform}: ${item.title}\n` +
+          `When: ${new Date(item.scheduled_time).toLocaleString()}\n` +
+          `Status: ${item.status}\n\nDetails:\n${item.details || '(none)'}`
+        );
+        // Or navigate to your board to edit:
+        // window.location.href = "/idea-board";
+      }
     });
-  </script>
+
+    calendar.render();
+  });
+</script>
+
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
