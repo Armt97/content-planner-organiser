@@ -717,4 +717,10 @@ h1, h2 { font-weight: 800; color: #fff; }
   transform: translateY(-1px);
 }
 
+/* Optional: subtle glow for KPI cards */
+.card.bg-dark.bg-opacity-75 {
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+
+
 

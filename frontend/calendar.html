@@ -11,32 +11,32 @@
 </head>
 <body>
   <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
-  <div class="container-fluid justify-content-center">
-    <ul class="navbar-nav">
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
-      </li>
-    </ul>
-  </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
+    <div class="container-fluid justify-content-center">
+      <ul class="navbar-nav">
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+        </li>
+      </ul>
+    </div>
 
-  <!-- Logout pinned to navbar -->
-  <form id="logoutForm" action="/logout" method="post"
-        class="position-absolute top-50 end-0 translate-middle-y me-4">
-    <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
-      Logout
-    </button>
-  </form>
-</nav>
+    <!-- Logout pinned to navbar -->
+    <form id="logoutForm" action="/logout" method="post"
+          class="position-absolute top-50 end-0 translate-middle-y me-4">
+      <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
+        Logout
+      </button>
+    </form>
+  </nav>
 
   <script>
     const lf = document.getElementById("logoutForm");
@@ -44,11 +44,8 @@
       e.preventDefault();
       const res = await fetch("/logout", { method: "POST" });
       const data = await res.json().catch(()=>({}));
-      if (data && data.ok) {
-        window.location.href = data.redirect || "/";
-      } else {
-        alert("Logout failed. Try again.");
-      }
+      if (data && data.ok) window.location.href = data.redirect || "/";
+      else alert("Logout failed. Try again.");
     });
   </script>
 
@@ -65,122 +62,131 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 'auto',
-        headerToolbar: {
-          left: 'prev,next',
-          center: 'title',
-          right: ''
-        },
+        headerToolbar: { left: 'prev,next', center: 'title', right: '' },
         navLinks: false,
         expandRows: false,
         aspectRatio: 1.0,
         eventDisplay: 'block',
         dayMaxEvents: 3,
         fixedWeekCount: true,
+
+        // drag/drop
         editable: true,
-eventStartEditable: true,
-eventDurationEditable: false,
+        eventStartEditable: true,
+        eventDurationEditable: false,
 
-eventDragStart(info) {
-  requestAnimationFrame(() => {
-    const mirror = document.querySelector('.fc-event-mirror');
-    if (!mirror) return;
+        // --- Fancy mirror handling you already had ---
+        eventDragStart(info) {
+          requestAnimationFrame(() => {
+            const mirror = document.querySelector('.fc-event-mirror');
+            if (!mirror) return;
 
-    // Where inside the card was it grabbed?
-    const r = mirror.getBoundingClientRect();
-    const grabDX = (info.jsEvent.pageX - window.scrollX) - r.left;
-    const grabDY = (info.jsEvent.pageY - window.scrollY) - r.top;
+            const r = mirror.getBoundingClientRect();
+            const grabDX = (info.jsEvent.pageX - window.scrollX) - r.left;
+            const grabDY = (info.jsEvent.pageY - window.scrollY) - r.top;
 
-    const onMove = (e) => {
-      const px = e.pageX - grabDX;   // page-space target left
-      const py = e.pageY - grabDY;   // page-space target top
+            const onMove = (e) => {
+              const px = e.pageX - grabDX;
+              const py = e.pageY - grabDY;
+              requestAnimationFrame(() => {
+                mirror.style.setProperty('transform', `translate(${px}px, ${py}px)`, 'important');
+              });
+            };
 
-      // Schedule after FC updates its own transform
-      requestAnimationFrame(() => {
-        mirror.style.setProperty(
-          'transform',
-          `translate(${px}px, ${py}px)`,
-          'important'
-        );
-      });
-    };
+            document.addEventListener('pointermove', onMove, { passive: true });
 
-    // keep updating while dragging
-    document.addEventListener('pointermove', onMove, { passive: true });
+            __visionaDragCleanup = () => {
+              document.removeEventListener('pointermove', onMove);
+              mirror.style.removeProperty('transform');
+              __visionaDragCleanup = null;
+            };
+          });
+        },
+        eventDragStop() {
+          if (typeof __visionaDragCleanup === 'function') __visionaDragCleanup();
+        },
 
-    __visionaDragCleanup = () => {
-      document.removeEventListener('pointermove', onMove);
-      // let FC resume normal control
-      mirror.style.removeProperty('transform');
-      __visionaDragCleanup = null;
-    };
-  });
-},
+        // === PERSIST MOVE: save new date to backend ===
+        async eventDrop(info) {
+          const ev = info.event;
+          try {
+            const iso = ev.start.toISOString(); // UTC ISO (…Z)
+            // Keep Posted as Posted; otherwise mark as Scheduled when dragged onto a date
+            const newStatus = ev.extendedProps.status === 'Posted' ? 'Posted' : 'Scheduled';
 
-eventDragStop() {
-  if (typeof __visionaDragCleanup === 'function') __visionaDragCleanup();
-},
+            const res = await fetch(`/api/ideas/${ev.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ scheduled_time: iso, status: newStatus })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.ok) throw new Error(data.message || 'Update failed');
 
+            // reflect new status in the in-memory event so badge color updates
+            ev.setExtendedProp('status', newStatus);
 
+            // re-pull events so any server-side logic is reflected (optional but safe)
+            calendar.refetchEvents();
+          } catch (e) {
+            console.error(e);
+            info.revert(); // rollback UI if save failed
+            alert('Could not save the new date—reverted.');
+          }
+        },
 
+        // If you later support resizing with end times, persist here similarly.
+        eventResize(info) {
+          info.revert();
+        },
 
-        // Fetch only Scheduled + Posted events from backend
+        // Fetch events
         events: async function(fetchInfo, successCallback, failureCallback) {
           try {
             const res = await fetch('/api/calendar-events');
             const data = await res.json();
-            if (res.ok && data.ok) {
-              successCallback(data.events || []);
-            } else {
-              failureCallback(new Error(data?.message || 'Failed to load events'));
-            }
+            if (res.ok && data.ok) successCallback(data.events || []);
+            else failureCallback(new Error(data?.message || 'Failed to load events'));
           } catch (err) {
             failureCallback(err);
           }
         },
 
-        // Make the event use its thumbnail as the background
-        eventDidMount: function(info) {
-  const url = info.event.extendedProps?.thumbnail_url || '';
-  if (url) {
-    info.el.classList.add('fc-has-thumb');
-    info.el.style.backgroundImage = `url("${url.replace(/"/g, '\\"')}")`;
-  } else {
-    info.el.classList.add('fc-no-thumb');
-  }
+        // Card rendering (thumbnail + badge)
+        eventDidMount(info) {
+          const url = info.event.extendedProps?.thumbnail_url || '';
+          if (url) {
+            info.el.classList.add('fc-has-thumb');
+            info.el.style.backgroundImage = `url("${url.replace(/"/g, '\\"')}")`;
+          } else {
+            info.el.classList.add('fc-no-thumb');
+          }
 
-  const title = info.event.title || '';
-  const platform = info.event.extendedProps?.platform || '';
-  const status = info.event.extendedProps?.status || '';
-  const details = info.event.extendedProps?.details || '';
+          const title = info.event.title || '';
+          const platform = info.event.extendedProps?.platform || '';
+          const status = info.event.extendedProps?.status || '';
+          const details = info.event.extendedProps?.details || '';
 
-  // ✅ new status color logic
-  const badgeClass =
-    status === 'Posted'
-      ? 'status-posted'
-      : status === 'Scheduled'
-      ? 'status-scheduled'
-      : 'status-other';
+          const badgeClass =
+            status === 'Posted' ? 'status-posted' :
+            status === 'Scheduled' ? 'status-scheduled' : 'status-other';
 
-  // create overlay
-  const wrap = document.createElement('div');
-  wrap.className = 'fc-thumb-overlay';
-  wrap.innerHTML = `
-    <div class="fc-thumb-topline">
-      <span class="fc-thumb-platform badge ${badgeClass}">${platform} • ${status}</span>
-    </div>
-    <div class="fc-thumb-title">${title}</div>
-  `;
+          const wrap = document.createElement('div');
+          wrap.className = 'fc-thumb-overlay';
+          wrap.innerHTML = `
+            <div class="fc-thumb-topline">
+              <span class="fc-thumb-platform badge ${badgeClass}">${platform} • ${status}</span>
+            </div>
+            <div class="fc-thumb-title">${title}</div>
+          `;
 
-  info.el.innerHTML = '';
-  info.el.appendChild(wrap);
+          info.el.innerHTML = '';
+          info.el.appendChild(wrap);
 
-  if (details) info.el.title = details;
-},
+          if (details) info.el.title = details;
+        },
 
-        // Click: (optional) jump to Idea-Board for editing
-        eventClick: function(info) {
-          // If you later add an edit modal here, hook it up.
-          // For now, just open the Idea-Board so user can edit there.
+        // Click → jump to Idea-Board for full edit
+        eventClick() {
           window.location.href = "{{ url_for('idea_board') }}";
         }
       });
