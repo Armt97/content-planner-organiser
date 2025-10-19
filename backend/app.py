@@ -11,6 +11,11 @@ from flask_login import (
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+
+
 from backend.models import db, User, Content, LibraryItem
 
 
@@ -26,6 +31,21 @@ BASE_BACKEND = os.path.dirname(__file__)
 DB_PATH = os.path.join(BASE_BACKEND, "visiona.db")
 
 app = Flask(__name__, template_folder=TEMPLATES, static_folder=STATIC)
+
+DOTENV_PATH = os.path.join(BASE_BACKEND, ".env")  # BASE_BACKEND already defined
+load_dotenv(DOTENV_PATH)
+
+# --- Flask-Mail config ---
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", "587"))
+app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
+app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "false").lower() == "true"
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", app.config.get("MAIL_USERNAME", ""))
+
+mail = Mail(app)
+
 app.config["SECRET_KEY"] = "dev-secret-change-me"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -533,6 +553,129 @@ def api_insights():
         "avg_idea_to_post_days": avg_days,
         "suggestions": suggestions
     })
+
+@app.route("/migrate/add-reminders-enabled")
+def migrate_add_reminders_enabled():
+    from sqlalchemy import inspect, text
+    insp = inspect(db.engine)
+    cols = [c["name"] for c in insp.get_columns("user")]
+    with db.engine.begin() as conn:
+        if "reminders_enabled" not in cols:
+            conn.execute(text("ALTER TABLE user ADD COLUMN reminders_enabled BOOLEAN DEFAULT 1"))
+    return {"ok": True, "message": "reminders_enabled ensured (default TRUE)"}
+
+def _mail_is_configured():
+    return bool(app.config.get("MAIL_SERVER") and app.config.get("MAIL_USERNAME") and app.config.get("MAIL_DEFAULT_SENDER"))
+
+def send_reminders_job():
+    """Runs periodically; emails users about Scheduled posts in next 24h."""
+    if not _mail_is_configured():
+        app.logger.info("[reminders] Mail not configured; skipping send.")
+        return
+
+    with app.app_context():
+        now = datetime.utcnow()
+        window_end = now + timedelta(hours=24)
+
+        # Fetch upcoming scheduled content
+        upcoming = (
+            Content.query
+            .filter(Content.status == "Scheduled")
+            .filter(Content.scheduled_time != None)
+            .filter(Content.scheduled_time >= now)
+            .filter(Content.scheduled_time <= window_end)
+            .order_by(Content.user_id.asc(), Content.scheduled_time.asc())
+            .all()
+        )
+
+        # Group by user
+        by_user = {}
+        for c in upcoming:
+            by_user.setdefault(c.user_id, []).append(c)
+
+        for user_id, items in by_user.items():
+            user = db.session.get(User, user_id)
+            if not user or not user.email or not getattr(user, "reminders_enabled", True):
+                continue
+
+            # Build email body
+            lines = []
+            lines.append("Heads up! You have posts scheduled in the next 24 hours:\n")
+            for it in items:
+                when_local = it.scheduled_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+                lines.append(f"- {it.title} ({it.platform}) at {when_local}")
+            lines.append("\nOpen Visiona → Calendar to review or adjust.\n")
+
+            body = "\n".join(lines)
+
+            try:
+                msg = Message(
+                    subject="Visiona Reminder: Upcoming scheduled posts",
+                    recipients=[user.email],
+                    body=body
+                )
+                mail.send(msg)
+                app.logger.info(f"[reminders] Sent to {user.email} ({len(items)} items)")
+            except Exception as e:
+                app.logger.exception(f"[reminders] Failed to send to {user.email}: {e}")
+
+# Start APScheduler (every 15 minutes)
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.add_job(func=send_reminders_job, trigger="interval", minutes=15, id="visiona_reminders")
+scheduler.start()
+
+@app.route("/api/reminders/test", methods=["POST"])
+@login_required
+def reminders_test():
+    if not _mail_is_configured():
+        return jsonify(ok=False, message="Mail not configured (.env missing or invalid)."), 400
+
+    upcoming = (
+        Content.query
+        .filter(Content.user_id == current_user.id)
+        .filter(Content.status == "Scheduled")
+        .filter(Content.scheduled_time != None)
+        .filter(Content.scheduled_time >= datetime.utcnow())
+        .order_by(Content.scheduled_time.asc())
+        .limit(5)
+        .all()
+    )
+
+    if not upcoming:
+        body = "No upcoming scheduled posts found for the next 24h. Add one and try again."
+    else:
+        lines = ["Your next scheduled posts:\n"]
+        for it in upcoming:
+            when_local = it.scheduled_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+            lines.append(f"- {it.title} ({it.platform}) at {when_local}")
+        body = "\n".join(lines)
+
+    try:
+        msg = Message(
+            subject="Visiona Test: Reminder email",
+            recipients=[current_user.email],
+            body=body
+        )
+        mail.send(msg)
+        return jsonify(ok=True, message=f"Sent test reminder to {current_user.email}")
+    except Exception as e:
+        return jsonify(ok=False, message=f"Send failed: {type(e).__name__}: {e}")
+
+@app.route("/api/test-email", methods=["GET"])
+@login_required
+def test_email():
+    if not _mail_is_configured():
+        return jsonify(ok=False, message="Mail not configured (.env missing or invalid)."), 400
+    try:
+        msg = Message(
+            subject="Visiona Test Email",
+            recipients=[current_user.email],  # sends to the logged-in user
+            body="Hi! This is a test email from your Visiona app. If you see this, Flask-Mail works ✅"
+        )
+        mail.send(msg)
+        return jsonify(ok=True, message=f"Test email sent to {current_user.email}")
+    except Exception as e:
+        return jsonify(ok=False, message=f"Send failed: {type(e).__name__}: {e}"), 500
 
 
 # -----------------------------
