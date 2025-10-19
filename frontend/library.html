@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Library</title>
+  <meta charset="UTF-8" />
+  <title>Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
 <body>
- <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
+  <!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
   <div class="container-fluid justify-content-center">
     <ul class="navbar-nav">
       <li class="nav-item mx-3">
@@ -25,27 +26,146 @@
       </li>
     </ul>
   </div>
+
+  <!-- Logout pinned to navbar -->
+  <form id="logoutForm" action="/logout" method="post"
+        class="position-absolute top-50 end-0 translate-middle-y me-4">
+    <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
+      Logout
+    </button>
+  </form>
 </nav>
 
-<form id="logoutForm" action="/logout" method="post" class="logout-btn">
-  <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
-    Logout
-  </button>
-</form>
+  <div class="container py-5">
+    <h2 class="text-center mb-4 text-white">Hashtag & Caption Library</h2>
 
-<script>
-  const lf = document.getElementById("logoutForm");
-  lf?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const res = await fetch("/logout", { method: "POST" });
-    const data = await res.json().catch(()=>({}));
-    if (data && data.ok) {
-      window.location.href = data.redirect || "/";
-    } else {
-      alert("Logout failed. Try again.");
-    }
-  });
-</script>
+    <!-- Add new item -->
+    <div class="card bg-dark bg-opacity-75 mb-4 p-3 rounded-4 text-white">
+      <h5 class="mb-3">Add New Template</h5>
+      <form id="addForm" class="row g-3">
+        <div class="col-md-6">
+          <input type="text" name="title" class="form-control" placeholder="Title (Summer Promo)" required>
+        </div>
+        <div class="col-md-6">
+          <input type="text" name="category" class="form-control" placeholder="Category (optional)">
+        </div>
+        <div class="col-12">
+          <textarea name="caption" class="form-control" rows="3" placeholder="Caption text..."></textarea>
+        </div>
+        <div class="col-12">
+          <textarea name="hashtags" class="form-control" rows="2" placeholder="#hashtag1 #hashtag2 #hashtag3"></textarea>
+        </div>
+        <div class="col-12 text-end">
+          <button type="submit" class="btn btn-success">Save</button>
+        </div>
+      </form>
+    </div>
 
+    <!-- List -->
+    <div id="libraryList" class="row g-4"></div>
+    <div id="emptyState" class="text-center text-white-50" style="display:none;">
+      <p>No templates yet. Add one above to get started ✨</p>
+    </div>
+  </div>
+
+  <script>
+    // logout
+    const lf = document.getElementById("logoutForm");
+    lf?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const res = await fetch("/logout", { method: "POST" });
+      const data = await res.json().catch(()=>({}));
+      if (data && data.ok) window.location.href = data.redirect || "/";
+      else alert("Logout failed. Try again.");
+    });
+
+    // Library logic
+    document.addEventListener("DOMContentLoaded", () => {
+      const list = document.getElementById("libraryList");
+      const empty = document.getElementById("emptyState");
+      const form = document.getElementById("addForm");
+
+      async function loadLibrary() {
+        const res = await fetch("/api/library");
+        const data = await res.json().catch(()=>({ok:false, items:[]}));
+        list.innerHTML = "";
+        if (!data.ok || !data.items || data.items.length === 0) {
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+
+        for (const i of data.items) {
+          const col = document.createElement("div");
+          col.className = "col-md-4";
+          col.innerHTML = `
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h5 class="card-title fw-bold mb-2">${escapeHtml(i.title)}</h5>
+                  ${i.category ? `<span class="badge bg-secondary">${escapeHtml(i.category)}</span>` : ""}
+                </div>
+                <p class="card-text mb-2">${nl2br(escapeHtml(i.caption || ""))}</p>
+                <pre class="small text-muted mb-3" style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(i.hashtags || "")}</pre>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-primary" data-copy="${escapeAttr(i.caption || "")}" title="Copy Caption">Copy Caption</button>
+                  <button class="btn btn-sm btn-outline-primary" data-copy="${escapeAttr(i.hashtags || "")}" title="Copy Hashtags">Copy Hashtags</button>
+                </div>
+              </div>
+              <div class="card-footer bg-transparent text-end">
+                <button class="btn btn-sm btn-danger" data-delete="${i.id}">Delete</button>
+              </div>
+            </div>
+          `;
+          list.appendChild(col);
+        }
+
+        list.querySelectorAll("[data-copy]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const text = btn.getAttribute("data-copy") || "";
+            try {
+              await navigator.clipboard.writeText(text);
+              const old = btn.textContent;
+              btn.textContent = "Copied!";
+              setTimeout(() => (btn.textContent = old), 900);
+            } catch {
+              alert("Copy failed. You can manually select and copy.");
+            }
+          });
+        });
+
+        list.querySelectorAll("[data-delete]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-delete");
+            if (!confirm("Delete this template?")) return;
+            const res = await fetch(`/api/library/${id}`, { method: "DELETE" });
+            const d = await res.json().catch(()=>({}));
+            if (d.ok) loadLibrary();
+            else alert(d.message || "Delete failed.");
+          });
+        });
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const payload = Object.fromEntries(fd.entries());
+        const res = await fetch("/api/library", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(()=>({ok:false}));
+        if (data.ok) { form.reset(); loadLibrary(); }
+        else { alert(data.message || "Error saving."); }
+      });
+
+      function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      function escapeAttr(s){ return escapeHtml(s).replace(/\n/g,' '); }
+      function nl2br(s){ return (s||"").replace(/\n/g,"<br>"); }
+
+      loadLibrary();
+    });
+  </script>
 </body>
 </html>

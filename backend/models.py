@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -35,3 +36,25 @@ class Content(db.Model):
 
     def __repr__(self):
       return f"<Content {self.title} on {self.platform}>"
+
+class LibraryItem(db.Model):
+    __tablename__ = "library_items"
+    id = db.Column(db.Integer, primary_key=True)
+    # fix FK target to match your existing 'user' table name
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    title = db.Column(db.String(100), nullable=False)        # e.g. “Summer Campaign”
+    caption = db.Column(db.Text, nullable=True)              # main text
+    hashtags = db.Column(db.Text, nullable=True)             # e.g. "#summer #travel"
+    category = db.Column(db.String(50), nullable=True)       # optional
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<LibraryItem {self.title}>"
+
+# (optional but recommended) add a relationship on User
+User.library_items = db.relationship(
+    "LibraryItem",
+    backref="user",
+    lazy=True,
+    cascade="all, delete-orphan"
+)
