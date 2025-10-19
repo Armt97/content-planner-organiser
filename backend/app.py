@@ -1,13 +1,11 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash
 import os
-from models import db, User  # make sure this import exists at the top
-from flask_login import login_user  # also ensure imported
-from flask_login import logout_user, login_required
-from flask import jsonify, url_for
+from datetime import datetime, timezone
+
+from models import db, User, Content
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATES = os.path.join(BASE_DIR, "frontend")
@@ -68,7 +66,7 @@ def login():
         return jsonify(ok=False, message="Invalid name or password.")
 
     login_user(user)
-    return jsonify(ok=True, message=f"Welcome back, {user.name}!", redirect=url_for("idea_board"))
+    return jsonify(ok=True, redirect=url_for("idea_board"))
 
 @login_manager.user_loader
 def load_user(user_id: str):
@@ -111,6 +109,137 @@ def init_db():
     with app.app_context():
         db.create_all()
     return {"status": "database initialised"}
+
+@app.route("/api/ideas", methods=["GET"])
+@login_required
+def api_list_ideas():
+    ideas = (Content.query
+             .filter_by(user_id=current_user.id)
+             .order_by(Content.id.desc())
+             .all())
+    data = []
+    for i in ideas:
+        utc_iso_z = i.scheduled_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        data.append({
+            "id": i.id,
+            "title": i.title,
+            "platform": i.platform,
+            "scheduled_time": utc_iso_z,
+            "status": i.status,
+            "details": i.details or ""   # <-- add this
+        })
+    return jsonify(ok=True, items=data)
+
+@app.route("/api/ideas", methods=["POST"])
+@login_required
+def api_create_idea():
+    # accept JSON or form
+    payload = request.get_json(silent=True) or request.form
+
+    title     = (payload.get("title") or "").strip()
+    platform  = (payload.get("platform") or "").strip()
+    scheduled = (payload.get("scheduled_time") or "").strip()
+    status    = (payload.get("status") or "Idea").strip()
+    details   = (payload.get("details") or "").strip()
+
+    if not title or not platform or not scheduled:
+        return jsonify(ok=False, message="Missing: title, platform, or scheduled_time"), 400
+
+    scheduled_dt = parse_scheduled_any(scheduled)
+    if not scheduled_dt:
+        return jsonify(ok=False, message=f"Invalid scheduled_time: {scheduled}"), 400
+
+    try:
+        item = Content(
+            title=title,
+            platform=platform,
+            scheduled_time=scheduled_dt,
+            status=status,
+            details=details,
+            user_id=current_user.id
+        )
+        db.session.add(item)
+        db.session.commit()
+        return jsonify(ok=True, message="Idea created.", id=item.id)
+    except Exception as e:
+        # temporary debug detail; remove once fixed
+        return jsonify(ok=False, message=f"DB error: {type(e).__name__}: {e}"), 500
+
+@app.route("/api/ideas/<int:idea_id>", methods=["DELETE"])
+@login_required
+def api_delete_idea(idea_id):
+    idea = Content.query.filter_by(id=idea_id, user_id=current_user.id).first()
+    if not idea:
+        return jsonify(ok=False, message="Idea not found."), 404
+    db.session.delete(idea)
+    db.session.commit()
+    return jsonify(ok=True, message="Idea removed.")
+
+@app.route("/api/ideas/<int:idea_id>", methods=["PATCH"])
+@login_required
+def api_update_idea(idea_id):
+    idea = Content.query.filter_by(id=idea_id, user_id=current_user.id).first()
+    if not idea:
+        return jsonify(ok=False, message="Idea not found."), 404
+
+    payload = request.get_json(silent=True) or request.form
+
+    def norm(key):
+        v = payload.get(key)
+        return (v if v is None else str(v)).strip() if v is not None else None
+
+    title     = norm("title")
+    platform  = norm("platform")
+    scheduled = norm("scheduled_time")
+    status    = norm("status")
+    details   = norm("details")
+
+    if title is not None:
+        if not title: return jsonify(ok=False, message="Title cannot be empty."), 400
+        idea.title = title
+    if platform is not None:
+        if not platform: return jsonify(ok=False, message="Platform cannot be empty."), 400
+        idea.platform = platform
+    if scheduled is not None:
+        dt = parse_scheduled_any(scheduled)
+        if not dt: return jsonify(ok=False, message=f"Invalid scheduled_time: {scheduled}"), 400
+        idea.scheduled_time = dt
+    if status is not None:
+        valid = {"Idea", "In Progress", "Scheduled", "Posted"}
+        if status not in valid: return jsonify(ok=False, message="Invalid status."), 400
+        idea.status = status
+    if details is not None:
+        idea.details = details
+
+    db.session.commit()
+    return jsonify(ok=True, message="Idea updated.")
+
+from datetime import datetime, timezone
+
+def parse_scheduled_any(s: str):
+    s = (s or "").strip()
+    if not s:
+        return None
+
+    # 1) Try ISO-8601 (handles ...Z and ...+13:00, etc.)
+    try:
+        iso = s[:-1] + "+00:00" if s.endswith("Z") else s
+        dt = datetime.fromisoformat(iso)
+        # store naive UTC in DB to avoid tz-aware issues with SQLite
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+    except Exception:
+        pass
+
+    # 2) Fallbacks: 24h and 12h with AM/PM
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %I:%M %p"):
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+
+    return None
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5001)

@@ -335,6 +335,124 @@ h1, h2 { font-weight: 800; color: #fff; }
   z-index: 2000;
 }
 
+/* === Add Idea Button (matches signup green) === */
+.btn-add-idea {
+  background-color: #00A388 !important;
+  border: none !important;
+  color: #fff !important;
+  padding: 0.6rem 2.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-add-idea:hover {
+  background-color: #00b996 !important; /* slightly brighter green */
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 163, 136, 0.4);
+}
+
+/* === IDEA BOARD: Green Gradient Theme === */
+.row > .col-md-3:nth-of-type(1) .card.bg-dark.bg-opacity-75 {
+  background: linear-gradient(274deg,rgba(0, 23, 36, 1) 0%, rgba(87, 199, 133, 1) 50%, rgba(237, 221, 83, 1) 100%);
+  color: #fff;
+}
+
+.row > .col-md-3:nth-of-type(2) .card.bg-dark.bg-opacity-75 {
+  background: linear-gradient(90deg,rgba(140, 0, 0, 1) 0%, rgba(250, 226, 45, 1) 50%, rgba(252, 176, 69, 1) 100%);
+  color: #fff;
+}
+
+.row > .col-md-3:nth-of-type(3) .card.bg-dark.bg-opacity-75 {
+  background: linear-gradient(275deg,rgba(0, 6, 38, 1) 0%, rgba(253, 29, 167, 1) 50%, rgba(191, 69, 252, 1) 100%);
+  color: #fff;
+}
+
+.row > .col-md-3:nth-of-type(4) .card.bg-dark.bg-opacity-75 {
+  background: linear-gradient(90deg,rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+  color: #fff;
+}
+
+/* Remove card borders from all gradient columns */
+.row > .col-md-3 .card.bg-dark.bg-opacity-75 {
+  border: none !important;
+  box-shadow: none !important; /* optional: removes subtle Bootstrap shadows */
+}
+
+
+/* Headers */
+.row > .col-md-3 .card.bg-dark.bg-opacity-75 .card-header {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Cards inside columns */
+.card-body .card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: none;
+  border-radius: .5rem;
+  padding: .5rem .75rem;
+  transition: transform 0.2s ease;
+}
+.card-body .card:hover {
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  border: none;
+  color: #000;
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+/* Drag’n’drop states */
+.card-body.dnd-over {
+  outline: 2px dashed rgba(255,255,255,0.85);
+  outline-offset: 4px;
+}
+
+.card.dragging {
+  opacity: 0.6;
+  transform: scale(0.98);
+}
+
+/* --- Edit Button Styling --- */
+.card .btn-edit {
+  background-color: #343a40;      /* dark grey fill */
+  color: #fff;                    /* white text */
+  font-weight: 600;               /* bold text */
+  border: none;
+  width: 100%;                    /* full width */
+  margin-top: 0.5rem;
+  border-radius: 0.4rem;
+  transition: background-color 0.2s ease;
+}
+
+.card .btn-edit:hover {
+  background-color: #212529;      /* darker on hover */
+  color: #fff;
+}
+
+/* in styles.css */
+.card .small {
+  white-space: pre-line; /* preserves \n line breaks */
+}
+
+
+
+
+
+
+
+
 
 
 

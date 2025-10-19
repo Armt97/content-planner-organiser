@@ -35,6 +35,7 @@
     Logout
   </button>
 </form>
+  
 
 <script>
   const lf = document.getElementById("logoutForm");
@@ -52,33 +53,67 @@
 
   <!-- Calendar Section -->
   <div class="container py-5">
-    <h2 class="mb-4 text-center">Content Calendar</h2>
     <div id="calendar"></div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const calendarEl = document.getElementById('calendar');
+  document.addEventListener('DOMContentLoaded', async function () {
+    const statusColors = {
+      "Scheduled": "#0d6efd", // blue
+      "Posted": "#198754"     // green
+    };
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-        },
-        events: [
-          { title: 'Instagram Post – New Reel', start: '2025-09-10T10:00:00' },
-          { title: 'TikTok Video – Behind the Scenes', start: '2025-09-12T15:00:00' },
-          { title: 'YouTube Upload – Vlog #5', start: '2025-09-15T18:00:00' },
-                  { title: 'Instagram Story – Q&A', start: '2025-09-18T09:00:00' }
-        ]
-      });
+    async function fetchCalendarEvents(fetchInfo, success, failure) {
+      try {
+        const res = await fetch("/api/ideas");
+        const data = await res.json();
+        if (!data.ok) return failure("Failed to load ideas.");
 
-      calendar.render();
+        const events = data.items
+          .filter(i => (i.status === "Scheduled" || i.status === "Posted") && !!i.scheduled_time)
+          .map(i => ({
+            id: String(i.id),
+            title: `${i.platform}: ${i.title}`,
+            start: i.scheduled_time,                       // ISO with Z from your API
+            color: statusColors[i.status] || "#6c757d",    // fallback grey if needed
+            extendedProps: { item: i }
+          }));
+
+        success(events);
+      } catch (err) {
+        console.error(err);
+        failure(err);
+      }
+    }
+
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 'auto',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' }, // AM/PM
+      events: fetchCalendarEvents,
+      eventClick(info) {
+        const item = info.event.extendedProps.item;
+        // If you want to edit from the calendar page:
+        alert(
+          `${item.platform}: ${item.title}\n` +
+          `When: ${new Date(item.scheduled_time).toLocaleString()}\n` +
+          `Status: ${item.status}\n\nDetails:\n${item.details || '(none)'}`
+        );
+        // Or navigate to your board to edit:
+        // window.location.href = "/idea-board";
+      }
     });
-  </script>
+
+    calendar.render();
+  });
+</script>
+
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
