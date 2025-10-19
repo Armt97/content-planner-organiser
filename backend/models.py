@@ -28,8 +28,8 @@ class Content(db.Model):
     platform = db.Column(db.String(50), nullable=False)   # e.g. Instagram, TikTok
     scheduled_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(50), nullable=False, default="Idea")
-
     details = db.Column(db.Text, nullable=True, default="")
+    thumbnail_url = db.Column(db.Text)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 

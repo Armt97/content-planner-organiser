@@ -19,8 +19,9 @@
     </div>
   </div>
 </div>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
   <div class="container-fluid justify-content-center">
     <ul class="navbar-nav">
       <li class="nav-item mx-3">
@@ -59,53 +60,61 @@
   });
 </script>
 
-  <!-- Idea Board Section -->
+<!-- Idea Board Section -->
 <div class="container py-5">
   <!-- Add Idea form -->
   <form id="addIdeaForm" class="bg-dark bg-opacity-75 text-white p-3 rounded-3 mb-4">
-  <div class="row g-3 align-items-end">
-    <div class="col-md-4">
-      <label class="form-label" for="ideaTitle">Title</label>
-      <input class="form-control" id="ideaTitle" name="title" placeholder="Reel: Morning Routine" required>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label" for="ideaTitle">Title</label>
+        <input class="form-control" id="ideaTitle" name="title" placeholder="Reel: Morning Routine" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="ideaPlatform">Platform</label>
+        <select class="form-select" id="ideaPlatform" name="platform" required>
+          <option value="" selected disabled>Choose…</option>
+          <option>Instagram</option>
+          <option>TikTok</option>
+          <option>YouTube</option>
+          <option>Facebook</option>
+          <option>X</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="ideaWhen">Date & Time</label>
+        <input class="form-control" id="ideaWhen" name="scheduled_time" placeholder="Pick a date/time" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="ideaStatus">Status</label>
+        <select class="form-select" id="ideaStatus" name="status">
+          <option>Idea</option>
+          <option>In Progress</option>
+          <option>Scheduled</option>
+          <option>Posted</option>
+        </select>
+      </div>
     </div>
-    <div class="col-md-3">
-      <label class="form-label" for="ideaPlatform">Platform</label>
-      <select class="form-select" id="ideaPlatform" name="platform" required>
-        <option value="" selected disabled>Choose…</option>
-        <option>Instagram</option>
-        <option>TikTok</option>
-        <option>YouTube</option>
-        <option>Facebook</option>
-        <option>X</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label" for="ideaWhen">Date & Time</label>
-      <input class="form-control" id="ideaWhen" name="scheduled_time" placeholder="Pick a date/time" required>
-    </div>
-    <div class="col-md-2">
-      <label class="form-label" for="ideaStatus">Status</label>
-      <select class="form-select" id="ideaStatus" name="status">
-        <option>Idea</option>
-        <option>In Progress</option>
-        <option>Scheduled</option>
-        <option>Posted</option>
-      </select>
-    </div>
-  </div>
 
-  <!-- Details section -->
-  <div class="mt-3">
-    <label class="form-label" for="ideaDetails">Details</label>
-    <textarea class="form-control" id="ideaDetails" name="details" rows="2"
-      placeholder="What the post will be about…"></textarea>
-  </div>
+    <!-- Details -->
+    <div class="mt-3">
+      <label class="form-label" for="ideaDetails">Details</label>
+      <textarea class="form-control" id="ideaDetails" name="details" rows="2" placeholder="What the post will be about…"></textarea>
+    </div>
 
-  <!-- Add button moved below Details -->
-  <div class="mt-4 text-center">
-    <button class="btn btn-add-idea px-5" type="submit">Add</button>
-  </div>
-</form>
+    <!-- Thumbnail: device upload OR URL -->
+    <div class="mt-3">
+      <label class="form-label" for="ideaThumbFile">Thumbnail (Upload from device)</label>
+      <input class="form-control" type="file" id="ideaThumbFile" accept="image/*">
+      <label class="form-label mt-2" for="ideaThumb">(Or paste a URL)</label>
+      <input class="form-control mt-2" id="ideaThumb" name="thumbnail_url" placeholder="https://example.com/image.jpg">
+      <img id="ideaThumbPreview" class="mt-2 rounded" style="max-width:100%; display:none;" alt="Preview">
+    </div>
+
+    <!-- Add button -->
+    <div class="mt-4 text-center">
+      <button class="btn btn-add-idea px-5" type="submit">Add</button>
+    </div>
+  </form>
 
   <div class="row">
     <!-- Column: Ideas -->
@@ -140,8 +149,10 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class="modal fade" id="editIdeaModal" tabindex="-1" aria-hidden="true">
+<!-- Edit Modal -->
+<div class="modal fade" id="editIdeaModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header">
@@ -175,6 +186,13 @@
             <label class="form-label" for="editDetails">Details</label>
             <textarea class="form-control" id="editDetails" rows="3" placeholder="What the post will be about…"></textarea>
           </div>
+          <div class="col-12">
+            <label class="form-label" for="editThumbFile">Thumbnail (Upload from device)</label>
+            <input class="form-control" type="file" id="editThumbFile" accept="image/*">
+            <label class="form-label mt-2" for="editThumb">(Or paste a URL)</label>
+            <input class="form-control mt-2" id="editThumb" placeholder="https://example.com/image.jpg">
+            <img id="editThumbPreview" class="mt-2 rounded" style="max-width:100%; display:none;" alt="Preview">
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -184,10 +202,9 @@
   </div>
 </div>
 
-</div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
   // --- Map status <-> column id ---
@@ -197,113 +214,101 @@
   // --- Helpers ---
   function escapeHtml(s){return (s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
-  // --- Card factory (now shows details + Edit button) ---
+  // --- Card factory (shows image + details + Edit + top-right X) ---
   function makeIdeaCard(item) {
-  const div = document.createElement("div");
-  div.className = "card bg-light text-dark p-2 position-relative";
-  div.dataset.id = item.id;
-  div.draggable = true;
+    const div = document.createElement("div");
+    div.className = "card bg-light text-dark p-2 position-relative";
+    div.dataset.id = item.id;
+    div.draggable = true;
 
-  const when = new Date(item.scheduled_time).toLocaleString();
-  const details = (item.details || "").trim();
+    const when = new Date(item.scheduled_time).toLocaleString();
+    const details = (item.details || "").trim();
+    const thumb = (item.thumbnail_url || "").trim();
 
-  div.innerHTML = `
-  <button type="button" class="btn btn-sm btn-delete position-absolute top-0 end-0 m-1" data-id="${item.id}">×</button>
-  <div class="fw-semibold">${escapeHtml(item.title)}</div>
-  <div class="small text-muted mb-1">${escapeHtml(item.platform)} • ${when}</div>
-  ${details ? `<div class="small mb-2">${escapeHtml(details)}</div>` : ""}
-  <button type="button" class="btn btn-sm btn-edit" data-id="${item.id}">Edit</button>
-`;
+    div.innerHTML = `
+      <button type="button" class="btn btn-sm btn-delete position-absolute top-0 end-0 m-1" data-id="${item.id}">×</button>
+      ${thumb ? `<img src="${escapeHtml(thumb)}" alt="thumb" class="idea-thumb mb-2">` : ""}
+      <div class="fw-semibold">${escapeHtml(item.title)}</div>
+      <div class="small text-muted mb-1">${escapeHtml(item.platform)} • ${when}</div>
+      ${details ? `<div class="small mb-2">${escapeHtml(details)}</div>` : ""}
+      <button type="button" class="btn btn-sm btn-edit" data-id="${item.id}">Edit</button>
+    `;
 
-  // prevent starting a drag when clicking buttons
-  div.querySelector(".btn-edit").addEventListener("click", (e) => { e.stopPropagation(); openEditModal(item); });
-  div.querySelector(".btn-delete").addEventListener("click", async (e) => {
-    e.preventDefault(); e.stopPropagation();
-    const id = e.currentTarget.dataset.id;
-    const res = await fetch(`/api/ideas/${id}`, { method: "DELETE" });
-    const data = await res.json().catch(()=>({}));
-    if (res.ok && data.ok) div.remove(); else alert(data?.message || "Failed to delete idea.");
-  });
+    // buttons
+    div.querySelector(".btn-edit").addEventListener("click", (e) => { e.stopPropagation(); openEditModal(item); });
+    div.querySelector(".btn-delete").addEventListener("click", async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const id = e.currentTarget.dataset.id;
+      const res = await fetch(`/api/ideas/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(()=>({}));
+      if (res.ok && data.ok) div.remove(); else alert(data?.message || "Failed to delete idea.");
+    });
 
-  // drag start/end
-  div.addEventListener("dragstart", (e) => {
-    div.classList.add("dragging");
-    // IMPORTANT: some browsers require any data to be set
-    e.dataTransfer.setData("text/plain", String(item.id));
-    e.dataTransfer.effectAllowed = "move";
-    // optional nicer ghost
-    if (e.dataTransfer.setDragImage) {
-      const ghost = document.createElement("div");
-      ghost.className = "p-1 bg-light border rounded text-dark";
-      ghost.style.position = "absolute";
-      ghost.style.top = "-9999px";
-      ghost.textContent = item.title;
-      document.body.appendChild(ghost);
-      e.dataTransfer.setDragImage(ghost, 0, 0);
-      setTimeout(() => ghost.remove(), 0);
-    }
-  });
-  div.addEventListener("dragend", () => div.classList.remove("dragging"));
-
-    // Edit
-    div.querySelector(".btn-edit").addEventListener("click", () => openEditModal(item));
+    // drag n drop
+    div.addEventListener("dragstart", (e) => {
+      div.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", String(item.id));
+      e.dataTransfer.effectAllowed = "move";
+      if (e.dataTransfer.setDragImage) {
+        const ghost = document.createElement("div");
+        ghost.className = "p-1 bg-light border rounded text-dark";
+        ghost.style.position = "absolute";
+        ghost.style.top = "-9999px";
+        ghost.textContent = item.title;
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 0, 0);
+        setTimeout(() => ghost.remove(), 0);
+      }
+    });
+    div.addEventListener("dragend", () => div.classList.remove("dragging"));
 
     return div;
   }
 
   async function updateStatus(id, newStatus) {
-  const res = await fetch(`/api/ideas/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: newStatus })
-  });
-  const data = await res.json().catch(()=>({}));
-  return !!(res.ok && data.ok);
-}
+    const res = await fetch(`/api/ideas/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    });
+    const data = await res.json().catch(()=>({}));
+    return !!(res.ok && data.ok);
+  }
 
   function wireDropZones() {
-  Object.values(colMap).forEach((colId) => {
-    const zone = document.getElementById(colId);
-    if (!zone) return;
+    Object.values(colMap).forEach((colId) => {
+      const zone = document.getElementById(colId);
+      if (!zone) return;
 
-    // allow drops
-    zone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      zone.classList.add("dnd-over");
+      zone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        zone.classList.add("dnd-over");
+      });
+
+      zone.addEventListener("dragleave", () => zone.classList.remove("dnd-over"));
+
+      zone.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        zone.classList.remove("dnd-over");
+
+        const id = e.dataTransfer.getData("text/plain");
+        if (!id) return;
+
+        const newStatus = statusFromColId[colId];
+        if (!newStatus) return;
+
+        const card = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+        if (card?.parentElement?.id === colId) return;
+
+        const ok = await updateStatus(id, newStatus);
+        if (ok) { if (card) zone.appendChild(card); }
+        else { alert("Could not move card. Try again."); }
+      });
     });
-
-    zone.addEventListener("dragleave", () => {
-      zone.classList.remove("dnd-over");
-    });
-
-    zone.addEventListener("drop", async (e) => {
-      e.preventDefault();
-      zone.classList.remove("dnd-over");
-
-      const id = e.dataTransfer.getData("text/plain");
-      if (!id) return;
-
-      const newStatus = statusFromColId[colId];
-      if (!newStatus) return;
-
-      // no-op guard (already in this column)
-      const card = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
-      if (card?.parentElement?.id === colId) return;
-
-      const ok = await updateStatus(id, newStatus);
-      if (ok) {
-        // move in UI
-        if (card) zone.appendChild(card);
-      } else {
-        alert("Could not move card. Try again.");
-      }
-    });
-  });
-}
+  }
 
   async function loadIdeas() {
-    // clear columns
     Object.values(colMap).forEach((id) => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
 
     const res = await fetch("/api/ideas");
@@ -317,22 +322,44 @@
     });
   }
 
-  // --- Flatpickr and forms ---
+  // --- Flatpickr + previews + wiring ---
   let fpIdeaWhen, fpEditWhen, editModal;
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Add form picker
     fpIdeaWhen = flatpickr("#ideaWhen", {
       enableTime: true, time_24hr: false, minuteIncrement: 5,
       altInput: true, altFormat: "D, d M Y h:i K",
       dateFormat: "Z", defaultHour: 12, allowInput: false
     });
 
-    // Edit picker
     fpEditWhen = flatpickr("#editWhen", {
       enableTime: true, time_24hr: false, minuteIncrement: 5,
       altInput: true, altFormat: "D, d M Y h:i K",
       dateFormat: "Z", defaultHour: 12, allowInput: false
+    });
+
+    // Add preview
+    const ideaThumbFile = document.getElementById("ideaThumbFile");
+    const ideaThumbPreview = document.getElementById("ideaThumbPreview");
+    ideaThumbFile?.addEventListener("change", () => {
+      const f = ideaThumbFile.files?.[0];
+      if (f) {
+        const reader = new FileReader();
+        reader.onload = () => { ideaThumbPreview.src = reader.result; ideaThumbPreview.style.display = "block"; };
+        reader.readAsDataURL(f);
+      } else { ideaThumbPreview.src = ""; ideaThumbPreview.style.display = "none"; }
+    });
+
+    // Edit preview
+    const editThumbFile = document.getElementById("editThumbFile");
+    const editThumbPreview = document.getElementById("editThumbPreview");
+    editThumbFile?.addEventListener("change", () => {
+      const f = editThumbFile.files?.[0];
+      if (f) {
+        const reader = new FileReader();
+        reader.onload = () => { editThumbPreview.src = reader.result; editThumbPreview.style.display = "block"; };
+        reader.readAsDataURL(f);
+      } else { editThumbPreview.src = ""; editThumbPreview.style.display = "none"; }
     });
 
     editModal = new bootstrap.Modal(document.getElementById("editIdeaModal"));
@@ -345,23 +372,58 @@
     loadIdeas();
   });
 
+  // Upload helper (used by Add & Edit)
+  async function uploadThumbnail(fileInput) {
+    const file = fileInput.files?.[0];
+    if (!file) return null;
 
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload-image", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.ok) return data.url;
+      alert(data.message || "Upload failed.");
+    } catch (err) {
+      alert("Network error during upload.");
+    }
+    return null;
+  }
+
+  // Create Idea
   async function handleAddIdea(e) {
     e.preventDefault();
-    const titleEl   = document.getElementById("ideaTitle");
-    const platformEl= document.getElementById("ideaPlatform");
-    const whenEl    = document.getElementById("ideaWhen");
-    const statusEl  = document.getElementById("ideaStatus");
-    const detailsEl = document.getElementById("ideaDetails");
+    const titleEl    = document.getElementById("ideaTitle");
+    const platformEl = document.getElementById("ideaPlatform");
+    const whenEl     = document.getElementById("ideaWhen");
+    const statusEl   = document.getElementById("ideaStatus");
+    const detailsEl  = document.getElementById("ideaDetails");
+    const thumbUrlEl = document.getElementById("ideaThumb");
+    const thumbFileEl= document.getElementById("ideaThumbFile");
 
     const fp = fpIdeaWhen || whenEl?._flatpickr;
-    if (!fp || !fp.selectedDates || !fp.selectedDates[0]) {
-      alert("Please pick a date and time."); return;
-    }
+    if (!fp || !fp.selectedDates || !fp.selectedDates[0]) { alert("Please pick a date and time."); return; }
     const iso = fp.selectedDates[0].toISOString();
 
-    // Send JSON (server now accepts both JSON and form)
-    let res, text, data;
+    // Upload file first (if chosen) to get a URL
+    let finalThumbUrl = (thumbUrlEl?.value || "").trim();
+    const chosenFile = thumbFileEl?.files?.[0];
+    if (chosenFile) {
+      const fd = new FormData();
+      fd.append("file", chosenFile);
+      const upRes = await fetch("/api/upload-image", { method: "POST", body: fd });
+      const upData = await upRes.json().catch(()=>({}));
+      if (upRes.ok && upData?.ok && upData.url) {
+        finalThumbUrl = upData.url;
+      } else {
+        alert(upData?.message || "Image upload failed.");
+        return;
+      }
+    }
+
+    // Create the idea
+    let res, data;
     try {
       res = await fetch("/api/ideas", {
         method: "POST",
@@ -371,21 +433,11 @@
           platform: platformEl.value,
           scheduled_time: iso,
           status: statusEl.value,
-          details: (detailsEl.value || "").trim()
+          details: (detailsEl.value || "").trim(),
+          thumbnail_url: finalThumbUrl
         })
       });
-
-      // try json first; if not JSON (e.g., login redirect HTML), read text
-      const ct = res.headers.get("Content-Type") || "";
-      if (ct.includes("application/json")) {
-        data = await res.json();
-      } else {
-        text = await res.text();
-        // Likely not authenticated (Flask-Login redirect)
-        alert("Your session may have expired. Please log in again.");
-        console.error("Non-JSON response from /api/ideas:", text);
-        return;
-      }
+      data = await res.json().catch(() => ({}));
     } catch (err) {
       console.error("Network error:", err);
       alert("Network error while adding the idea.");
@@ -394,6 +446,8 @@
 
     if (res.ok && data?.ok) {
       document.getElementById("addIdeaForm").reset();
+      const ideaThumbPreview = document.getElementById("ideaThumbPreview");
+      if (ideaThumbPreview) { ideaThumbPreview.src=""; ideaThumbPreview.style.display="none"; }
       fp.clear();
       await loadIdeas();
     } else {
@@ -402,35 +456,56 @@
     }
   }
 
-
-
-  // --- Edit modal wiring ---
+  // Edit modal wiring
   function openEditModal(item) {
     document.getElementById("editId").value = item.id;
     document.getElementById("editTitle").value = item.title;
     document.getElementById("editPlatform").value = item.platform;
     document.getElementById("editStatus").value = item.status;
     document.getElementById("editDetails").value = item.details || "";
+    document.getElementById("editThumb").value = item.thumbnail_url || "";
+    const editThumbPreview = document.getElementById("editThumbPreview");
+    if (item.thumbnail_url) { editThumbPreview.src = item.thumbnail_url; editThumbPreview.style.display = "block"; }
+    else { editThumbPreview.src = ""; editThumbPreview.style.display = "none"; }
     fpEditWhen.setDate(new Date(item.scheduled_time), true);
     editModal.show();
   }
 
+  // Save Edit
   async function saveEdit() {
-    const id = document.getElementById("editId").value;
-    const title = document.getElementById("editTitle").value.trim();
-    const platform = document.getElementById("editPlatform").value;
-    const status = document.getElementById("editStatus").value;
-    const details = (document.getElementById("editDetails").value || "").trim();
+    const id        = document.getElementById("editId").value;
+    const title     = document.getElementById("editTitle").value.trim();
+    const platform  = document.getElementById("editPlatform").value;
+    const status    = document.getElementById("editStatus").value;
+    const details   = (document.getElementById("editDetails").value || "").trim();
+    const editUrlEl = document.getElementById("editThumb");
+    const editFileEl= document.getElementById("editThumbFile");
 
     if (!fpEditWhen || !fpEditWhen.selectedDates[0]) { alert("Please pick a date and time."); return; }
     const iso = fpEditWhen.selectedDates[0].toISOString();
+
+    // Upload new file if selected
+    let finalThumbUrl = (editUrlEl?.value || "").trim();
+    const editChosenFile = editFileEl?.files?.[0];
+    if (editChosenFile) {
+      const fd = new FormData();
+      fd.append("file", editChosenFile);
+      const upRes = await fetch("/api/upload-image", { method: "POST", body: fd });
+      const upData = await upRes.json().catch(()=>({}));
+      if (upRes.ok && upData?.ok && upData.url) {
+        finalThumbUrl = upData.url;
+      } else {
+        alert(upData?.message || "Image upload failed.");
+        return;
+      }
+    }
 
     let res, data;
     try {
       res = await fetch(`/api/ideas/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, platform, status, details, scheduled_time: iso })
+        body: JSON.stringify({ title, platform, status, details, scheduled_time: iso, thumbnail_url: finalThumbUrl })
       });
       data = await res.json().catch(()=>({}));
     } catch {
@@ -446,7 +521,5 @@
   }
 </script>
 
-
 </body>
 </html>
-
