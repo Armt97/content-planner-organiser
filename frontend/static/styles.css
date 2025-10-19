@@ -246,3 +246,76 @@ h1, h2 { font-weight: 800; color: #fff; }
 .card-body .card {
   border-radius: .5rem;
 }
+
+/* === Hero Buttons: background image fill with white border === */
+.hero .btn {
+  background: rgba(255, 255, 255, 0.1);  /* translucent background */
+  backdrop-filter: blur(6px);            /* gives a frosted glass look */
+  -webkit-backdrop-filter: blur(6px);
+  border: 2px solid #fff;                /* white border */
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.6rem 2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+/* Optional: subtle overlay to make text more legible */
+.hero .btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25); /* darkens a little for contrast */
+  border-radius: inherit;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.hero .btn:hover::before {
+  opacity: 0.1; /* slightly lighter on hover */
+}
+
+.hero .btn:hover {
+  background: rgba(255, 255, 255, 0.25); /* slightly brighter on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Subtitle under VISIONA */
+.hero .lead {
+  color: rgba(255, 255, 255, 1);   /* very bright white */
+  font-size: 1.60rem;                 /* optional: slightly larger */
+  max-width: 600px;                   /* keeps it tidy on wide screens */
+  margin: 1.5rem auto 2.5rem;         /* centers + adds space above/below */
+  line-height: 1.5;
+}
+
+/* Hero title (VISIONA) */
+.hero h1 {
+  font-size: clamp(4rem, 10vw, 4rem); /* responsive & big */
+  font-weight: 900;
+  letter-spacing: 0.3rem;
+  color: #fff;
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+  margin-bottom: 1.2rem; /* gives a little breathing room before subtitle */
+}
+
+/* Center and balance the two hero buttons */
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;             /* space between the buttons */
+  text-align: center;
+  margin: 0 auto;        /* ensures center alignment */
+  width: 100%;
+  max-width: 500px;      /* optional: keeps them neatly centered under the text */
+  transform: translateX(-10px);
+}
+
+
+
+
+
+

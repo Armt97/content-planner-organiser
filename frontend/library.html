@@ -1,10 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
 <body>
-$END$
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/' else '' }}" href="{{ url_for('home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/idea-board' else '' }}" href="{{ url_for('idea_board') }}">Idea Board</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/calendar' else '' }}" href="{{ url_for('calendar') }}">Calendar</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/library' else '' }}" href="{{ url_for('library') }}">Hashtag Library</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/insights' else '' }}" href="{{ url_for('insights') }}">Insights</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
 </body>
 </html>
