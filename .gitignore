@@ -222,3 +222,4 @@ instance/
 .env
 *.db
 frontend/static/uploads/
+cookiejar.txt
