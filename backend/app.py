@@ -280,5 +280,32 @@ def parse_scheduled_any(s: str):
 
     return None
 
+@app.route("/api/calendar-events", methods=["GET"])
+@login_required
+def api_calendar_events():
+    # Only show Scheduled + Posted on the calendar
+    ideas = (Content.query
+             .filter(Content.user_id == current_user.id,
+                     Content.status.in_(["Scheduled", "Posted"]))
+             .order_by(Content.scheduled_time.asc())
+             .all())
+
+    events = []
+    for i in ideas:
+        utc_iso_z = i.scheduled_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        events.append({
+            "id": i.id,
+            "title": i.title,
+            "start": utc_iso_z,
+            # pass extras for rendering
+            "extendedProps": {
+                "platform": i.platform,
+                "status": i.status,
+                "thumbnail_url": (i.thumbnail_url or ""),
+                "details": (i.details or "")
+            }
+        })
+    return jsonify(ok=True, events=events)
+
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5001)
