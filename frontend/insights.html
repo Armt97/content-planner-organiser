@@ -2,27 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Insights</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="nav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/' else '' }}" href="{{ url_for('home') }}">Home</a></li>
-        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/idea-board' else '' }}" href="{{ url_for('idea_board') }}">Idea Board</a></li>
-        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/calendar' else '' }}" href="{{ url_for('calendar') }}">Calendar</a></li>
-        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/library' else '' }}" href="{{ url_for('library') }}">Hashtag Library</a></li>
-        <li class="nav-item"><a class="nav-link {{ 'active' if request.path=='/insights' else '' }}" href="{{ url_for('insights') }}">Insights</a></li>
-      </ul>
-    </div>
+ <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
+  <div class="container-fluid justify-content-center">
+    <ul class="navbar-nav">
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+      </li>
+    </ul>
   </div>
 </nav>
+
+<form id="logoutForm" action="/logout" method="post" class="logout-btn">
+  <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
+    Logout
+  </button>
+</form>
+
+<script>
+  const lf = document.getElementById("logoutForm");
+  lf?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/logout", { method: "POST" });
+    const data = await res.json().catch(()=>({}));
+    if (data && data.ok) {
+      window.location.href = data.redirect || "/";
+    } else {
+      alert("Logout failed. Try again.");
+    }
+  });
+</script>
 
 </body>
 </html>

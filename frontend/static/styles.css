@@ -314,6 +314,28 @@ h1, h2 { font-weight: 800; color: #fff; }
   transform: translateX(-10px);
 }
 
+.navbar-nav .nav-link {
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.navbar-nav .nav-link:hover {
+  color: #00A388;
+  transform: scale(1.05);
+}
+.navbar-nav .nav-link.active {
+  color: #00A388 !important;
+  font-weight: 600;
+}
+
+.logout-btn {
+  position: fixed;
+  top: 21px;
+  right: 40px;
+  z-index: 2000;
+}
+
+
 
 
 

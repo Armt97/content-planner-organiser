@@ -3,25 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Idea Board</title>
+  <title>Idea-Board</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 p-3">
-    <div class="container-fluid">
-      <a href="{{ url_for('home') }}" class="navbar-brand">VISIONA</a>
-      <div class="collapse navbar-collapse" id="nav">
-        <ul class="nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="{{ url_for('idea_board') }}">Idea Board</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('calendar') }}">Calendar</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('library') }}">Library</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('insights') }}">Insights</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
+  <div class="container-fluid justify-content-center">
+    <ul class="navbar-nav">
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<form id="logoutForm" action="/logout" method="post" class="logout-btn">
+  <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
+    Logout
+  </button>
+</form>
+
+<script>
+  const lf = document.getElementById("logoutForm");
+  lf?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/logout", { method: "POST" });
+    const data = await res.json().catch(()=>({}));
+    if (data && data.ok) {
+      window.location.href = data.redirect || "/";
+    } else {
+      alert("Logout failed. Try again.");
+    }
+  });
+</script>
+
 
   <!-- Idea Board Section -->
   <div class="container py-5">

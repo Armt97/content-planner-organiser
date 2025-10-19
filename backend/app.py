@@ -6,6 +6,8 @@ from models import db, User
 import os
 from models import db, User  # make sure this import exists at the top
 from flask_login import login_user  # also ensure imported
+from flask_login import logout_user, login_required
+from flask import jsonify, url_for
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATES = os.path.join(BASE_DIR, "frontend")
@@ -71,6 +73,12 @@ def login():
 @login_manager.user_loader
 def load_user(user_id: str):
     return User.query.get(int(user_id))
+
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    logout_user()
+    return jsonify(ok=True, redirect=url_for("home"))
 
 @app.route("/health")
 def health():
