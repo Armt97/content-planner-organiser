@@ -673,3 +673,48 @@ h1, h2 { font-weight: 800; color: #fff; }
   z-index: 9999 !important;
   box-shadow: 0 4px 12px rgba(0,0,0,.25);
 }
+
+.card.bg-dark.bg-opacity-75 form .form-control {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+}
+.card.bg-dark.bg-opacity-75 form .form-control::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+#libraryPickModal .modal-content {
+  background: rgba(255,255,255,0.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  color: #fff !important;
+}
+
+/* Adjust small embedded button */
+#btnLoadFromLib {
+  font-size: 0.85rem;
+  padding: 0.35rem 1rem;
+  z-index: 2; /* keep it above textarea */
+}
+
+/* Optional: give space so it doesn't overlap text */
+#ideaDetails {
+  padding-bottom: 2.5rem; /* enough space for button */
+}
+
+/* Logout button styling */
+#logoutBtn {
+  backdrop-filter: blur(6px);
+  border: 1px solid #fff;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+#logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+

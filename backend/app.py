@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 import uuid
 from werkzeug.utils import secure_filename
-from backend.models import db, User, Content
+from backend.models import db, User, Content, LibraryItem
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATES = os.path.join(BASE_DIR, "frontend")
@@ -129,8 +129,59 @@ def idea_board():
 def calendar():
     return render_template("calendar.html")
 
-@app.route("/library")
-def library():
+# === Hashtag/Caption Library API ===
+@app.route("/api/library", methods=["GET"])
+@login_required
+def api_list_library():
+    items = (LibraryItem.query
+             .filter_by(user_id=current_user.id)
+             .order_by(LibraryItem.id.desc())
+             .all())
+    data = [{
+        "id": i.id,
+        "title": i.title,
+        "caption": i.caption or "",
+        "hashtags": i.hashtags or "",
+        "category": i.category or "",
+    } for i in items]
+    return jsonify(ok=True, items=data)
+
+@app.route("/api/library", methods=["POST"])
+@login_required
+def api_add_library():
+    payload = request.get_json(silent=True) or request.form
+    title = (payload.get("title") or "").strip()
+    caption = (payload.get("caption") or "").strip()
+    hashtags = (payload.get("hashtags") or "").strip()
+    category = (payload.get("category") or "").strip()
+
+    if not title:
+        return jsonify(ok=False, message="Title is required"), 400
+
+    item = LibraryItem(
+        user_id=current_user.id,
+        title=title,
+        caption=caption,
+        hashtags=hashtags,
+        category=category
+    )
+    db.session.add(item)
+    db.session.commit()
+    return jsonify(ok=True, id=item.id, message="Saved")
+
+@app.route("/api/library/<int:item_id>", methods=["DELETE"])
+@login_required
+def api_delete_library(item_id):
+    item = LibraryItem.query.filter_by(id=item_id, user_id=current_user.id).first()
+    if not item:
+        return jsonify(ok=False, message="Not found"), 404
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify(ok=True, message="Deleted")
+
+@app.route("/library", endpoint="library")   # keep endpoint name "library" for url_for('library')
+@login_required
+def library_page():
     return render_template("library.html")
 
 @app.route("/insights")

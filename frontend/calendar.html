@@ -11,30 +11,32 @@
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3">
-    <div class="container-fluid justify-content-center">
-      <ul class="navbar-nav">
-        <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
-        </li>
-        <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
-        </li>
-        <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
-        </li>
-        <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
+  <div class="container-fluid justify-content-center">
+    <ul class="navbar-nav">
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+      </li>
+      <li class="nav-item mx-3">
+        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+      </li>
+    </ul>
+  </div>
 
-  <form id="logoutForm" action="/logout" method="post" class="logout-btn">
-    <button type="submit" class="btn btn-outline-light btn-sm" style="backdrop-filter:blur(6px);border:1px solid #fff;">
+  <!-- Logout pinned to navbar -->
+  <form id="logoutForm" action="/logout" method="post"
+        class="position-absolute top-50 end-0 translate-middle-y me-4">
+    <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
       Logout
     </button>
   </form>
+</nav>
 
   <script>
     const lf = document.getElementById("logoutForm");
