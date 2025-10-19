@@ -221,3 +221,4 @@ __pycache__/
 instance/
 .env
 *.db
+frontend/static/uploads/

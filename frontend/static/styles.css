@@ -453,16 +453,223 @@ h1, h2 { font-weight: 800; color: #fff; }
   border-radius: .5rem;
 }
 
+/* ===== Calendar appearance tweaks ===== */
 
+/* Make the month/week grid cells white */
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-slot,
+.fc .fc-col-header-cell {
+  background: #ffffff !important;
+}
 
+/* Softer grid lines on white */
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
 
+/* Slightly larger base font inside the calendar */
+.fc {
+  font-size: 1rem;
+}
 
+/* Make dayGrid events taller so the thumbnail has room */
+.fc .fc-daygrid-event {
+  min-height: 80px;                 /* bump this up/down to taste */
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,.18);
+}
 
+/* Your thumbnail-based event styling (kept, just tuned) */
+.fc .fc-event.fc-has-thumb {
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  color: #fff !important;
+}
 
+/* Fallback when no image */
+.fc .fc-event.fc-no-thumb {
+  background: linear-gradient(135deg, #1f2937, #374151) !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  color: #fff !important;
+}
 
+/* Readable overlay on top of the image */
+.fc .fc-event .fc-thumb-overlay {
+  position: relative;
+  z-index: 1;
+  padding: 10px;                    /* more breathing room */
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.60),
+    rgba(0,0,0,0.30),
+    rgba(0,0,0,0.00)
+  );
+}
 
+.fc .fc-event .fc-thumb-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
 
+/* Badge row at the top of each event card */
+.fc .fc-event .fc-thumb-topline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
+.fc .fc-event .badge {
+  opacity: 0.95;
+}
 
+/* --- Keep day boxes uniform height --- */
+.fc-daygrid-day-frame {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 120px;                /* fixed cell height */
+}
 
+.fc-daygrid-day-top {
+  flex-shrink: 0;               /* keep date number visible */
+}
 
+.fc-daygrid-day-events {
+  flex-grow: 1;
+  overflow-y: auto;             /* scroll if too many events */
+  padding: 2px 0;
+}
+
+/* Optional: make scrollbars subtle */
+.fc-daygrid-day-events::-webkit-scrollbar {
+  width: 4px;
+}
+.fc-daygrid-day-events::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.15);
+  border-radius: 4px;
+}
+
+/* === Calendar Text Colour Overrides === */
+
+/* Day numbers and day headers */
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: #000 !important;       /* black */
+}
+
+/* Event text (titles, badges, etc.) */
+.fc .fc-event,
+.fc .fc-event-title,
+.fc .fc-thumb-title,
+.fc .fc-thumb-overlay,
+.fc .fc-thumb-topline,
+.fc .fc-event .badge {
+  color: #000 !important;       /* ensure all event text is black */
+}
+
+/* If you want badges and icons to stay readable on dark backgrounds: */
+.fc .fc-event .badge.bg-success,
+.fc .fc-event .badge.bg-warning {
+  color: #000 !important;
+}
+
+/* === Calendar text color adjustments === */
+
+/* Day numbers and headers → black */
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: #000 !important;
+}
+
+/* General event text → black (for badges, etc.) */
+.fc .fc-event,
+.fc .fc-event .badge {
+  color: #000 !important;
+}
+
+/* Event title text → white for contrast on thumbnails */
+.fc .fc-thumb-title {
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* optional for readability */
+}
+
+/* If you only want white titles on image events */
+.fc .fc-has-thumb .fc-thumb-title {
+  color: #fff !important;
+}
+
+/* === Center month title (e.g., October 2025) perfectly === */
+.fc .fc-header-toolbar {
+  display: flex !important;
+  justify-content: space-between !important; /* arrows left, title center */
+  align-items: center;
+}
+
+/* === Subtle left nudge for the month title === */
+.fc .fc-toolbar-title {
+  position: relative;
+  left: -50px;   /* adjust: try -8px, -10px, or -12px to taste */
+}
+
+/* === Calendar Status Colors (match Idea-Board gradients) === */
+.badge.status-posted {
+  background: linear-gradient(90deg, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+.badge.status-scheduled {
+  background: linear-gradient(275deg, rgba(253, 29, 167, 1) 50%, rgba(191, 69, 252, 1) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 8px rgba(191, 69, 252, 0.4);
+}
+
+/* === Fix white text on gradient badges === */
+.badge.status-posted,
+.badge.status-scheduled {
+  color: #fff !important;           /* force white text */
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+/* === Force badge text white, even against Bootstrap overrides === */
+.fc .fc-thumb-platform.badge.status-posted,
+.fc .fc-thumb-platform.badge.status-scheduled {
+  color: #fff !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Optional consistency fix */
+.fc .fc-thumb-platform.badge {
+  border: none !important;
+  background-clip: padding-box !important;
+}
+
+/* Make the dragged (mirror) event behave like the real one */
+.fc-event-mirror {
+  opacity: 1 !important;           /* fully visible */
+  transform: scale(1.0) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: grabbing !important;
+  z-index: 9999 !important;
+}
+
+/* Make the mirror look/feel like the real event */
+.fc-event { cursor: grab; }
+.fc-event:active { cursor: grabbing; }
+.fc-event-mirror {
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
