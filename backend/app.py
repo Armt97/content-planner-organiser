@@ -59,7 +59,7 @@ app.config["MAIL_DEFAULT_SENDER"] = os.getenv(
 mail = Mail(app)  # Initialize Flask-Mail with the app.
 
 # Core Flask/SQLAlchemy config. SECRET_KEY should be rotated in production.
-app.config["SECRET_KEY"] = "dev-secret-change-me"  # TODO: set secure value in production
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-change-me")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
