@@ -3,43 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <title>Library</title>
+  <!-- Responsive layout on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Bootstrap CSS for layout/components -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Project stylesheet (cache-busted with ?v=1) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
 </head>
 <body>
-  <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
-  <div class="container-fluid justify-content-center">
-    <ul class="navbar-nav">
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
-      </li>
-      <li class="nav-item mx-3">
-        <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
-      </li>
-    </ul>
-  </div>
+  <!--
+    Navbar:
+    - Centered nav links
+    - Jinja conditionals add 'active' class based on current route
+    - Logout button is absolutely positioned to the right
+  -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
+    <div class="container-fluid justify-content-center">
+      <ul class="navbar-nav">
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+        </li>
+      </ul>
+    </div>
 
-  <!-- Logout pinned to navbar -->
-  <form id="logoutForm" action="/logout" method="post"
-        class="position-absolute top-50 end-0 translate-middle-y me-4">
-    <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
-      Logout
-    </button>
-  </form>
-</nav>
+    <!-- Logout pinned to navbar (right) -->
+    <form id="logoutForm" action="/logout" method="post"
+          class="position-absolute top-50 end-0 translate-middle-y me-4">
+      <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
+        Logout
+      </button>
+    </form>
+  </nav>
 
   <div class="container py-5">
     <h2 class="text-center mb-4 text-white">Hashtag & Caption Library</h2>
 
-    <!-- Add new item -->
+    <!--
+      Add new item card:
+      - Form posts via fetch as JSON to /api/library
+      - Minimal required fields; title is required
+    -->
     <div class="card bg-dark bg-opacity-75 mb-4 p-3 rounded-4 text-white">
       <h5 class="mb-3">Add New Template</h5>
       <form id="addForm" class="row g-3">
@@ -61,7 +73,11 @@
       </form>
     </div>
 
-    <!-- List -->
+    <!--
+      List container:
+      - Cards get injected here client-side after fetching /api/library
+      - Shows empty state when no items are returned
+    -->
     <div id="libraryList" class="row g-4"></div>
     <div id="emptyState" class="text-center text-white-50" style="display:none;">
       <p>No templates yet. Add one above to get started ✨</p>
@@ -69,32 +85,40 @@
   </div>
 
   <script>
-    // logout
+    // Enhance logout to use fetch so can follow JSON redirect response from /logout
     const lf = document.getElementById("logoutForm");
     lf?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const res = await fetch("/logout", { method: "POST" });
-      const data = await res.json().catch(()=>({}));
-      if (data && data.ok) window.location.href = data.redirect || "/";
-      else alert("Logout failed. Try again.");
+      try {
+        const res = await fetch("/logout", { method: "POST" });
+        const data = await res.json().catch(()=>({}));
+        if (data && data.ok) window.location.href = data.redirect || "/";
+        else alert("Logout failed. Try again.");
+      } catch {
+        alert("Network error during logout.");
+      }
     });
 
-    // Library logic
+    // Library logic (runs after DOM is ready)
     document.addEventListener("DOMContentLoaded", () => {
       const list = document.getElementById("libraryList");
       const empty = document.getElementById("emptyState");
       const form = document.getElementById("addForm");
 
+      // Fetch current user's library items and render as cards
       async function loadLibrary() {
         const res = await fetch("/api/library");
         const data = await res.json().catch(()=>({ok:false, items:[]}));
         list.innerHTML = "";
+
+        // If nothing found or error, show empty state
         if (!data.ok || !data.items || data.items.length === 0) {
           empty.style.display = "block";
           return;
         }
         empty.style.display = "none";
 
+        // Build a Bootstrap card for each item
         for (const i of data.items) {
           const col = document.createElement("div");
           col.className = "col-md-4";
@@ -106,8 +130,10 @@
                   ${i.category ? `<span class="badge bg-secondary">${escapeHtml(i.category)}</span>` : ""}
                 </div>
                 <p class="card-text mb-2">${nl2br(escapeHtml(i.caption || ""))}</p>
+                <!-- hashtags shown in pre for easy copy and preserved formatting -->
                 <pre class="small text-muted mb-3" style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(i.hashtags || "")}</pre>
                 <div class="d-flex gap-2">
+                  <!-- data-copy holds plain text; we escape attr to avoid HTML injection -->
                   <button class="btn btn-sm btn-outline-primary" data-copy="${escapeAttr(i.caption || "")}" title="Copy Caption">Copy Caption</button>
                   <button class="btn btn-sm btn-outline-primary" data-copy="${escapeAttr(i.hashtags || "")}" title="Copy Hashtags">Copy Hashtags</button>
                 </div>
@@ -120,11 +146,13 @@
           list.appendChild(col);
         }
 
+        // Copy-to-clipboard handlers (caption/hashtags)
         list.querySelectorAll("[data-copy]").forEach(btn => {
           btn.addEventListener("click", async () => {
             const text = btn.getAttribute("data-copy") || "";
             try {
               await navigator.clipboard.writeText(text);
+              // quick success feedback
               const old = btn.textContent;
               btn.textContent = "Copied!";
               setTimeout(() => (btn.textContent = old), 900);
@@ -134,6 +162,7 @@
           });
         });
 
+        // Delete handlers — confirm then call DELETE /api/library/:id
         list.querySelectorAll("[data-delete]").forEach(btn => {
           btn.addEventListener("click", async () => {
             const id = btn.getAttribute("data-delete");
@@ -146,26 +175,45 @@
         });
       }
 
+      // Intercept form submit; convert to JSON and POST to /api/library
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const fd = new FormData(form);
         const payload = Object.fromEntries(fd.entries());
+
+        // POST as JSON (backend accepts JSON or form-encoded)
         const res = await fetch("/api/library", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(()=>({ok:false}));
-        if (data.ok) { form.reset(); loadLibrary(); }
-        else { alert(data.message || "Error saving."); }
+        if (data.ok) {
+          form.reset();
+          loadLibrary();  // refresh list
+        } else {
+          alert(data.message || "Error saving.");
+        }
       });
 
-      function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      // --- Small helpers to prevent XSS and preserve formatting ---
+      // Escape HTML entities for safe insertion into innerHTML
+      function escapeHtml(s){
+        return (s||"").replace(/[&<>"']/g, c => ({
+          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+        }[c]));
+      }
+      // Escape for attribute context (also flatten newlines)
       function escapeAttr(s){ return escapeHtml(s).replace(/\n/g,' '); }
+      // Convert newlines to <br> for display
       function nl2br(s){ return (s||"").replace(/\n/g,"<br>"); }
 
+      // Initial load
       loadLibrary();
     });
   </script>
+
+  <!-- Bootstrap JS bundle (Popper included) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

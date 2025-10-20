@@ -2,16 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Responsive layout on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visiona – Content Planner</title>
 
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap CSS for layout/components -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Project styles (cache-busted with ?v=2) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=2">
 </head>
 
 <body>
-  <!-- Splash Screen -->
+  <!--
+    Splash Screen:
+    - Shows a simple typewriter animation before revealing main content.
+    - Removed after fade so the DOM stays tidy.
+  -->
   <div id="splash" role="dialog" aria-label="Loading">
     <div class="splash-box">
       <div class="typewrap">
@@ -21,98 +27,110 @@
     </div>
   </div>
 
-  <!-- MAIN CONTENT (hidden until splash ends) -->
+  <!--
+    MAIN CONTENT (initially hidden)
+    - Revealed when the splash animation completes.
+  -->
   <div id="main-content" class="d-none">
     <!-- Hero Section -->
     <section class="hero text-center py-5">
       <h1 class="mb-3 fw-bold text-white">V I S I O N A</h1>
       <p class="lead mb-5 text-white-50">Plan, schedule, and organise your social media content.</p>
 
-      <!-- Buttons side-by-side -->
-    <div class="hero-buttons">
-  <button class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#signupModal">
-    Create Account
-  </button>
-  <button class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#loginModal">
-    Login
-  </button>
-</div>
+      <!-- Primary CTA buttons open Bootstrap modals -->
+      <div class="hero-buttons">
+        <button class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#signupModal">
+          Create Account
+        </button>
+        <button class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#loginModal">
+          Login
+        </button>
+      </div>
     </section>
 
-   <!-- Login Modal -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
-      <div class="modal-header">
-        <h5 class="modal-title">Login</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="loginMsg" class="alert d-none mb-3" role="alert"></div>
+    <!--
+      Login Modal
+      - Posts to /login (handled by Flask)
+      - The form is intercepted in JS to show inline feedback and follow JSON redirect
+    -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
+          <div class="modal-header">
+            <h5 class="modal-title">Login</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- status/feedback area (hidden until used) -->
+            <div id="loginMsg" class="alert d-none mb-3" role="alert"></div>
 
-        <form id="loginForm" action="/login" method="post" novalidate>
-          <div class="mb-3">
-            <label for="loginName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="loginName" name="name" placeholder="Enter your name" required>
+            <form id="loginForm" action="/login" method="post" novalidate>
+              <div class="mb-3">
+                <label for="loginName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="loginName" name="name" placeholder="Enter your name" required>
+              </div>
+              <div class="mb-3">
+                <label for="loginPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Enter your password" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
           </div>
-          <div class="mb-3">
-            <label for="loginPassword" class="form-label">Password</label>
-            <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Enter your password" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-    <!-- Signup Modal -->
-<div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
-      <div class="modal-header">
-        <h5 class="modal-title">Create Account</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <!-- feedback area -->
-        <div id="signupMsg" class="alert d-none mb-3" role="alert"></div>
-
-        <!-- IMPORTANT: id, action, method, and name= attributes -->
-        <form id="signupForm" action="/register" method="post" novalidate>
-          <div class="mb-3">
-            <label for="signupName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="signupName" name="name" placeholder="Enter your name" required>
-          </div>
-          <div class="mb-3">
-            <label for="signupEmail" class="form-label">Email</label>
-            <input type="email" class="form-control" id="signupEmail" name="email" placeholder="Enter your email" required>
-          </div>
-          <div class="mb-3">
-            <label for="signupPassword" class="form-label">Password</label>
-            <input type="password" class="form-control" id="signupPassword" name="password" placeholder="Create your password" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-  </div>
 
-  <!-- Bootstrap JS -->
+    <!--
+      Signup Modal
+      - Posts to /register
+      - The form is intercepted to provide inline UX and to follow JSON redirect
+    -->
+    <div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-light bg-opacity-90 shadow rounded-3">
+          <div class="modal-header">
+            <h5 class="modal-title">Create Account</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- feedback area -->
+            <div id="signupMsg" class="alert d-none mb-3" role="alert"></div>
+
+            <!-- IMPORTANT: id, action, method, and name= attributes -->
+            <form id="signupForm" action="/register" method="post" novalidate>
+              <div class="mb-3">
+                <label for="signupName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="signupName" name="name" placeholder="Enter your name" required>
+              </div>
+              <div class="mb-3">
+                <label for="signupEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="signupEmail" name="email" placeholder="Enter your email" required>
+              </div>
+              <div class="mb-3">
+                <label for="signupPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="signupPassword" name="password" placeholder="Create your password" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- /#main-content -->
+
+  <!-- Bootstrap JS bundle (Popper included) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Typewriter / Splash Script -->
+  <!--
+    Typewriter / Splash Script
+    - Types "V I S I O N A" letter-by-letter
+    - After a short pause, fades out and reveals the main content
+  -->
   <script>
     const TEXT_TO_TYPE = "V I S I O N A";
-    const PER_CHAR_DELAY = 120;
-    const AFTER_DONE_PAUSE = 300;
-    const FADE_STAGGER_MAX = 900;
-    const FADE_MIN_DUR = 700;
-    const FADE_MAX_DUR = 1000;
-
+    const PER_CHAR_DELAY = 120;     // ms between letters
+    const AFTER_DONE_PAUSE = 300;   // pause before fade
     const typed = document.getElementById("typed");
     const caret = document.querySelector(".caret");
 
@@ -122,124 +140,142 @@
         span.className = "letter";
         span.textContent = t[i];
         typed.appendChild(span);
+        // trigger CSS transition
         requestAnimationFrame(() => span.classList.add("show"));
         setTimeout(() => typeIt(t, i + 1), PER_CHAR_DELAY);
       } else {
+        // start caret blink and schedule splash fade
         caret.classList.add("blink");
         setTimeout(() => fadeOutSplash(), AFTER_DONE_PAUSE);
       }
     }
 
-    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
     function fadeOutSplash() {
       caret.classList.remove("blink");
       const splash = document.getElementById("splash");
       const main = document.getElementById("main-content");
+      // Add a CSS class that animates opacity/transform
       splash.classList.add("hide");
+      // After animation ends, reveal main and remove splash from DOM
       setTimeout(() => {
         main.classList.remove("d-none");
         splash.remove();
-      }, 800);
+      }, 800); // keep in sync with CSS animation duration
     }
 
+    // Kick off the typewriter once all assets loaded (fonts, etc.)
     window.addEventListener("load", () => typeIt(TEXT_TO_TYPE));
   </script>
 
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const signupForm = document.getElementById("signupForm");
-    const signupMsg  = document.getElementById("signupMsg");
+  <!--
+    Signup handler
+    - Intercepts form submit, posts as x-www-form-urlencoded to /register
+    - Shows inline status and follows JSON redirect (to /idea-board)
+  -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const signupForm = document.getElementById("signupForm");
+      const signupMsg  = document.getElementById("signupMsg");
 
-    if (!signupForm) {
-      console.warn("signupForm not found in DOM");
-      return;
-    }
+      if (!signupForm) {
+        console.warn("signupForm not found in DOM");
+        return;
+      }
 
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      signupMsg.className = "alert alert-info";
-      signupMsg.textContent = "Creating your account...";
-      signupMsg.classList.remove("d-none");
+        // Show progress status
+        signupMsg.className = "alert alert-info";
+        signupMsg.textContent = "Creating your account...";
+        signupMsg.classList.remove("d-none");
 
-      try {
-        const res = await fetch("/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(new FormData(signupForm))
-        });
-        const data = await res.json();
+        try {
+          const res = await fetch("/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(signupForm))
+          });
+          const data = await res.json();
 
-        if (res.ok && data.ok) {
-  // store a one-time flash message for the next page
-  if (data.message) sessionStorage.setItem("flash", data.message);
+          if (res.ok && data.ok) {
+            // Store a one-time flash message to show after redirect (optional)
+            if (data.message) sessionStorage.setItem("flash", data.message);
 
-  loginMsg.className = "alert alert-success";
-  loginMsg.textContent = "Login successful!";
-  setTimeout(() => {
-    const modalEl = document.getElementById("loginModal");
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.hide();
-    window.location.href = data.redirect || "/idea-board";
-  }, 600);
-}
- else {
+            // FIX: use signupMsg (not loginMsg) and close the SIGNUP modal
+            signupMsg.className = "alert alert-success";
+            signupMsg.textContent = data.message || "Account created!";
+
+            setTimeout(() => {
+              const modalEl = document.getElementById("signupModal");
+              // Safely get or create the Bootstrap Modal instance
+              const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+              modal.hide();
+              window.location.href = data.redirect || "/idea-board";
+            }, 600);
+          } else {
+            signupMsg.className = "alert alert-danger";
+            signupMsg.textContent = (data && data.message) ? data.message : "Sign up failed.";
+          }
+        } catch (err) {
+          console.error(err);
           signupMsg.className = "alert alert-danger";
-          signupMsg.textContent = (data && data.message) ? data.message : "Sign up failed.";
+          signupMsg.textContent = "Network error. Please try again.";
         }
-      } catch (err) {
-        console.error(err);
-        signupMsg.className = "alert alert-danger";
-        signupMsg.textContent = "Network error. Please try again.";
-      }
+      });
     });
-  });
-</script>
+  </script>
 
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("loginForm");
-    const loginMsg  = document.getElementById("loginMsg");
+  <!--
+    Login handler
+    - Intercepts form submit, posts to /login
+    - Shows inline status and follows JSON redirect
+  -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const loginForm = document.getElementById("loginForm");
+      const loginMsg  = document.getElementById("loginMsg");
 
-    if (!loginForm) return;
+      if (!loginForm) return;
 
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      loginMsg.className = "alert alert-info";
-      loginMsg.textContent = "Logging in...";
-      loginMsg.classList.remove("d-none");
+        // Show progress status
+        loginMsg.className = "alert alert-info";
+        loginMsg.textContent = "Logging in...";
+        loginMsg.classList.remove("d-none");
 
-      try {
-        const res = await fetch("/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(new FormData(loginForm))
-        });
-        const data = await res.json();
+        try {
+          const res = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(loginForm))
+          });
+          const data = await res.json();
 
-        if (res.ok && data.ok) {
-          loginMsg.className = "alert alert-success";
-          loginMsg.textContent = data.message || "Login successful!";
-          setTimeout(() => {
-            const modalEl = document.getElementById("loginModal");
-            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.hide();
-            window.location.href = data.redirect || "/idea-board";
-          }, 600);
-        } else {
+          if (res.ok && data.ok) {
+            loginMsg.className = "alert alert-success";
+            loginMsg.textContent = data.message || "Login successful!";
+            setTimeout(() => {
+              const modalEl = document.getElementById("loginModal");
+              // Safely get or create the Bootstrap Modal instance
+              const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+              modal.hide();
+              window.location.href = data.redirect || "/idea-board";
+            }, 600);
+          } else {
+            loginMsg.className = "alert alert-danger";
+            loginMsg.textContent = data.message || "Login failed.";
+          }
+        } catch (err) {
+          console.error(err);
           loginMsg.className = "alert alert-danger";
-          loginMsg.textContent = data.message || "Login failed.";
+          loginMsg.textContent = "Network error. Please try again.";
         }
-      } catch (err) {
-        console.error(err);
-        loginMsg.className = "alert alert-danger";
-        loginMsg.textContent = "Network error. Please try again.";
-      }
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
 </html>

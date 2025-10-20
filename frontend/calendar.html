@@ -2,34 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Make layout responsive on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calendar</title>
+
+  <!-- Bootstrap (layout & components) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Project CSS (cache-busted with ?v=1) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
+
+  <!-- FullCalendar styles + script (using global build) -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 </head>
 <body>
-  <!-- Navbar -->
+  <!--
+    Navbar:
+    - Uses Bootstrap classes.
+    - Jinja conditionals mark the current page link as 'active' based on request.path.
+    - Logout button is positioned to the right.
+  -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 py-3 position-relative">
     <div class="container-fluid justify-content-center">
       <ul class="navbar-nav">
         <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}" href="{{ url_for('idea_board') }}">Idea-Board</a>
+          <a class="nav-link text-white {% if request.path == '/idea-board' %}active{% endif %}"
+             href="{{ url_for('idea_board') }}">Idea-Board</a>
         </li>
         <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">Calendar</a>
+          <a class="nav-link text-white {% if request.path == '/calendar' %}active{% endif %}"
+             href="{{ url_for('calendar') }}">Calendar</a>
         </li>
         <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}" href="{{ url_for('library') }}">Library</a>
+          <a class="nav-link text-white {% if request.path == '/library' %}active{% endif %}"
+             href="{{ url_for('library') }}">Library</a>
         </li>
         <li class="nav-item mx-3">
-          <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}" href="{{ url_for('insights') }}">Insights</a>
+          <a class="nav-link text-white {% if request.path == '/insights' %}active{% endif %}"
+             href="{{ url_for('insights') }}">Insights</a>
         </li>
       </ul>
     </div>
 
-    <!-- Logout pinned to navbar -->
+    <!-- Logout form pinned to the right of the navbar -->
     <form id="logoutForm" action="/logout" method="post"
           class="position-absolute top-50 end-0 translate-middle-y me-4">
       <button type="submit" class="btn btn-outline-light btn-sm px-3 py-1" id="logoutBtn">
@@ -39,52 +55,71 @@
   </nav>
 
   <script>
+    // Progressive enhancement: turn the logout POST into fetch so can follow
+    // the JSON redirect (server returns {"ok": true, "redirect": "/"}).
     const lf = document.getElementById("logoutForm");
     lf?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const res = await fetch("/logout", { method: "POST" });
-      const data = await res.json().catch(()=>({}));
-      if (data && data.ok) window.location.href = data.redirect || "/";
-      else alert("Logout failed. Try again.");
+      try {
+        const res = await fetch("/logout", { method: "POST" });
+        const data = await res.json().catch(()=>({}));
+        if (data && data.ok) {
+          // Navigate to server-indicated redirect (home by default)
+          window.location.href = data.redirect || "/";
+        } else {
+          alert("Logout failed. Try again.");
+        }
+      } catch {
+        alert("Network error during logout.");
+      }
     });
   </script>
 
-  <!-- Calendar Section -->
+  <!-- Calendar container -->
   <div class="container py-5">
     <div id="calendar"></div>
   </div>
 
   <script>
+    // Wait until DOM is ready before initializing FullCalendar.
     document.addEventListener('DOMContentLoaded', function() {
       const calendarEl = document.getElementById('calendar');
+
+      // Stored cleanup function for our pointermove listener used during drag mirror tweaks.
       let __visionaDragCleanup = null;
 
+      // Create a new FullCalendar instance with month grid view.
       const calendar = new FullCalendar.Calendar(calendarEl, {
+        // --- Core view/layout options ---
         initialView: 'dayGridMonth',
-        height: 'auto',
+        height: 'auto',                    // Let it size naturally within the container
         headerToolbar: { left: 'prev,next', center: 'title', right: '' },
-        navLinks: false,
-        expandRows: false,
-        aspectRatio: 1.0,
-        eventDisplay: 'block',
-        dayMaxEvents: 3,
-        fixedWeekCount: true,
+        navLinks: false,                   // Don’t click day names to drill into day/week
+        expandRows: false,                 // Keep rows compact unless needed
+        aspectRatio: 1.0,                  // Controls width/height balance
+        eventDisplay: 'block',             // Render events as full-width blocks
+        dayMaxEvents: 3,                   // “+n more” if too many in a day
+        fixedWeekCount: true,              // Always render 6 weeks for consistent height
 
-        // drag/drop
-        editable: true,
+        // --- Interactivity (drag to reschedule) ---
+        editable: true,                    // Enables dragging of events
         eventStartEditable: true,
-        eventDurationEditable: false,
+        eventDurationEditable: false,      // Don’t track end time/length in this app
 
-        // --- Fancy mirror handling you already had ---
+        // --- Visual polish for the drag mirror element ---
         eventDragStart(info) {
+          // After drag starts, FullCalendar inserts a ".fc-event-mirror" element that follows the cursor.
+          // Override its CSS transform each pointermove so the grab point “feels” precise.
           requestAnimationFrame(() => {
             const mirror = document.querySelector('.fc-event-mirror');
             if (!mirror) return;
 
+            // Compute where inside the element the user grabbed it.
             const r = mirror.getBoundingClientRect();
             const grabDX = (info.jsEvent.pageX - window.scrollX) - r.left;
             const grabDY = (info.jsEvent.pageY - window.scrollY) - r.top;
 
+            // Pointer move handler to reposition the mirror element smoothly.
             const onMove = (e) => {
               const px = e.pageX - grabDX;
               const py = e.pageY - grabDY;
@@ -95,6 +130,7 @@
 
             document.addEventListener('pointermove', onMove, { passive: true });
 
+            // Save a cleanup function to remove listeners + reset styles later.
             __visionaDragCleanup = () => {
               document.removeEventListener('pointermove', onMove);
               mirror.style.removeProperty('transform');
@@ -103,17 +139,23 @@
           });
         },
         eventDragStop() {
+          // Ensure to remove the pointermove listener and clean up styles.
           if (typeof __visionaDragCleanup === 'function') __visionaDragCleanup();
         },
 
-        // === PERSIST MOVE: save new date to backend ===
+        // === Persist drag result to backend ===
         async eventDrop(info) {
+          // info.event is the event after drop; info.revert() undoes the UI move.
           const ev = info.event;
           try {
-            const iso = ev.start.toISOString(); // UTC ISO (…Z)
-            // Keep Posted as Posted; otherwise mark as Scheduled when dragged onto a date
+            // Convert to UTC ISO string (YYYY-MM-DDTHH:mm:ss.sssZ).
+            const iso = ev.start.toISOString();
+
+            // If the event was already 'Posted', keep it as 'Posted', otherwise set 'Scheduled'
+            // when the user drags it onto a date. This aligns with the backend status rules.
             const newStatus = ev.extendedProps.status === 'Posted' ? 'Posted' : 'Scheduled';
 
+            // PATCH the idea (event id == content id in the DB)
             const res = await fetch(`/api/ideas/${ev.id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
@@ -122,54 +164,64 @@
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.ok) throw new Error(data.message || 'Update failed');
 
-            // reflect new status in the in-memory event so badge color updates
+            // Update in-memory status so badges/colors update without a full refresh
             ev.setExtendedProp('status', newStatus);
 
-            // re-pull events so any server-side logic is reflected (optional but safe)
+            // Optional: re-fetch all events from the server to stay perfectly in sync
             calendar.refetchEvents();
           } catch (e) {
             console.error(e);
-            info.revert(); // rollback UI if save failed
+            // If persistence fails, revert the visual move to avoid inconsistency.
+            info.revert();
             alert('Could not save the new date—reverted.');
           }
         },
 
-        // If you later support resizing with end times, persist here similarly.
+        // Don’t support resizing (start/end) in this app; enforce by reverting.
         eventResize(info) {
           info.revert();
         },
 
-        // Fetch events
+        // --- Fetch events from backend ---
+        // FullCalendar calls this when it needs data;return items from /api/calendar-events.
         events: async function(fetchInfo, successCallback, failureCallback) {
           try {
             const res = await fetch('/api/calendar-events');
             const data = await res.json();
-            if (res.ok && data.ok) successCallback(data.events || []);
-            else failureCallback(new Error(data?.message || 'Failed to load events'));
+            if (res.ok && data.ok) {
+              successCallback(data.events || []);
+            } else {
+              failureCallback(new Error(data?.message || 'Failed to load events'));
+            }
           } catch (err) {
             failureCallback(err);
           }
         },
 
-        // Card rendering (thumbnail + badge)
+        // --- Render each event card (thumbnail + platform/status badge) ---
         eventDidMount(info) {
+          // If a thumbnail URL is present, set it as a background image for a card-like look.
           const url = info.event.extendedProps?.thumbnail_url || '';
           if (url) {
             info.el.classList.add('fc-has-thumb');
+            // Escape quotes to avoid breaking inline style.
             info.el.style.backgroundImage = `url("${url.replace(/"/g, '\\"')}")`;
           } else {
             info.el.classList.add('fc-no-thumb');
           }
 
+          // Build the overlay content (badge + title).
           const title = info.event.title || '';
           const platform = info.event.extendedProps?.platform || '';
           const status = info.event.extendedProps?.status || '';
           const details = info.event.extendedProps?.details || '';
 
+          // Map status to a CSS badge class you can style in styles.css.
           const badgeClass =
             status === 'Posted' ? 'status-posted' :
             status === 'Scheduled' ? 'status-scheduled' : 'status-other';
 
+          // Replace default innerHTML with our custom markup.
           const wrap = document.createElement('div');
           wrap.className = 'fc-thumb-overlay';
           wrap.innerHTML = `
@@ -182,19 +234,23 @@
           info.el.innerHTML = '';
           info.el.appendChild(wrap);
 
+          // Optional: expose details as a tooltip on hover.
           if (details) info.el.title = details;
         },
 
-        // Click → jump to Idea-Board for full edit
+        // On click, navigate back to Idea-Board where full editing occurs.
         eventClick() {
           window.location.href = "{{ url_for('idea_board') }}";
         }
       });
 
+      // Finally, render the calendar into the target element.
       calendar.render();
     });
   </script>
 
+  <!-- Bootstrap JS bundle (Popper included) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
