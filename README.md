@@ -73,6 +73,8 @@ Then open your browser and go to:
 
 You can register a new user, log in, and begin creating ideas on the Idea Board.
 
+---
+
 ### ✅ Testing
 
 Run automated backend tests using:
@@ -80,10 +82,12 @@ Run automated backend tests using:
 pytest
 ```
 
+```bash
 Expected output:
 ====================== test session starts ======================
 collected 6 items
 ====================== 6 passed in 1.2s ========================
+```
 
 ---
 
